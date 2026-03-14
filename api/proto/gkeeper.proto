@@ -1,0 +1,28 @@
+edition = "2023";
+
+package vsevolodryzhov.gkeeper.proto;
+
+option go_package = "github.com/vsevolod-ryzhov/gkeeper.git/api/proto";
+
+service GKeeper {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message RegisterResponse {
+  string result = 1;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string result = 1;
+}
