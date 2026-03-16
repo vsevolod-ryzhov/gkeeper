@@ -6,6 +6,7 @@ import (
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 
 	pb "gkeeper/api/proto"
 )
@@ -35,8 +36,13 @@ func (s *Server) Start() error {
 		return fmt.Errorf("gRPC listener init error: %w", err)
 	}
 
+	tlsCreds, err := generateTLSCreds()
+	if err != nil {
+		s.logger.Fatal("failed to generate tls creds: %v", zap.Error(err))
+	}
+
 	s.logger.Info("gRPC server listening", zap.String("port", s.config.AppPort))
-	s.grpcServer = grpc.NewServer()
+	s.grpcServer = grpc.NewServer(grpc.Creds(tlsCreds))
 	s.logger.Info("gRPC server started", zap.String("port", s.config.AppPort))
 
 	gkeeperServer := NewGKeeperServer(s.logger)
@@ -54,4 +60,11 @@ func (s *Server) Stop() {
 		s.grpcServer.GracefulStop()
 		s.logger.Info("gRPC server stopped")
 	}
+}
+
+func generateTLSCreds() (credentials.TransportCredentials, error) {
+	certFile := "crt/server.crt"
+	keyFile := "crt/server.key"
+
+	return credentials.NewServerTLSFromFile(certFile, keyFile)
 }

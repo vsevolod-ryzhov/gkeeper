@@ -1,10 +1,14 @@
 package models
 
 import (
+	"context"
+	"gkeeper/internal/grpcclient"
+	"gkeeper/internal/tui/styles"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"go.uber.org/zap"
 )
 
 type LoginModel struct {
@@ -60,9 +64,16 @@ func (m LoginModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		case "tab", "shift+tab", "enter", "up", "down":
 			if msg.String() == "enter" && m.focusIndex == 2 {
 				if m.validateForm() {
-					// TODO: send login request here
-					m.Success = true
-					m.Email = m.emailInput.Value()
+					ctx := context.Background()
+					client := grpcclient.NewClient(&zap.Logger{})
+					defer client.Close()
+					err := client.Login(ctx, m.emailInput.Value(), m.passInput.Value())
+					if err != nil {
+						m.ErrorMsg = "Invalid email or password"
+					} else {
+						m.Success = true
+						m.Email = m.emailInput.Value()
+					}
 				} else {
 					m.ErrorMsg = "Invalid email or password"
 				}
@@ -123,22 +134,24 @@ func (m LoginModel) validateForm() bool {
 func (m LoginModel) View() string {
 	var b strings.Builder
 
-	b.WriteString("Login\n\n")
-	b.WriteString("Email:\n")
-	b.WriteString(m.emailInput.View() + "\n\n")
-	b.WriteString("Password:\n")
-	b.WriteString(m.passInput.View() + "\n\n")
+	b.WriteString(styles.NormalStyle.Render("Email:"))
+	b.WriteString("\n")
+	b.WriteString(styles.RenderInputField(m.emailInput.Value(), m.emailInput.Placeholder, m.focusIndex == 0))
+	b.WriteString("\n\n")
 
-	button := "[ Login ]"
-	if m.focusIndex == 2 {
-		button = "> [ Login ] <"
-	}
-	b.WriteString(button + "\n\n")
+	b.WriteString(styles.NormalStyle.Render("Password:"))
+	b.WriteString("\n")
+	b.WriteString(styles.RenderInputField(m.passInput.Value(), m.passInput.Placeholder, m.focusIndex == 1))
+	b.WriteString("\n\n")
+
+	b.WriteString(styles.RenderButton("LOGIN", m.focusIndex == 2))
+	b.WriteString("\n\n")
 
 	if m.ErrorMsg != "" {
-		b.WriteString("Error: " + m.ErrorMsg + "\n")
+		b.WriteString(styles.ErrorStyle.Render("✗ " + m.ErrorMsg))
+		b.WriteString("\n")
 	}
 
-	b.WriteString("\nPress Esc to go back, Ctrl+C to quit.\n")
+	b.WriteString(styles.FooterStyle.Render("\nPress Esc to go back, Ctrl+C to quit.\n"))
 	return b.String()
 }
