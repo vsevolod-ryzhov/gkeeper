@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gkeeper/internal/config"
 	"gkeeper/internal/grpcserver"
+	"gkeeper/internal/storage"
 	"os/signal"
 	"syscall"
 
@@ -25,6 +26,12 @@ func init() {
 
 func Run(ctx context.Context) error {
 	config.ParseFlags()
+
+	dbStorage, storageErr := storage.NewPostgresStorage(config.Options.DatabaseDSN)
+	if storageErr != nil {
+		return storageErr
+	}
+
 	errCh := make(chan error, 1)
 
 	grpcServer := grpcserver.NewServer(
@@ -35,7 +42,7 @@ func Run(ctx context.Context) error {
 	)
 
 	go func() {
-		if serverErr := grpcServer.Start(); serverErr != nil {
+		if serverErr := grpcServer.Start(dbStorage); serverErr != nil {
 			errCh <- fmt.Errorf("gRPC server failed: %w", serverErr)
 		}
 	}()

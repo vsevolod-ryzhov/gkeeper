@@ -11,21 +11,24 @@ type SessionState int
 const (
 	MenuView SessionState = iota
 	LoginView
+	RegisterView
 )
 
 type MainModel struct {
-	state SessionState
-	menu  models.MenuModel
-	login models.LoginModel
+	state    SessionState
+	menu     models.MenuModel
+	login    models.LoginModel
+	register models.RegisterModel
 
 	userEmail string
 }
 
 func NewMainModel() MainModel {
 	return MainModel{
-		state: MenuView,
-		menu:  models.NewMenuModel(),
-		login: models.NewLoginModel(),
+		state:    MenuView,
+		menu:     models.NewMenuModel(),
+		login:    models.NewLoginModel(),
+		register: models.NewRegisterModel(),
 	}
 }
 
@@ -55,6 +58,10 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.state = LoginView
 				m.menu.Selected = ""
 				cmds = append(cmds, m.login.Init())
+			case "register":
+				m.state = RegisterView
+				m.menu.Selected = ""
+				cmds = append(cmds, m.register.Init())
 			case "exit":
 				return m, tea.Quit
 			}
@@ -73,6 +80,16 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.state = MenuView
 			m.login.Back = false
 		}
+
+	case RegisterView:
+		updateRegister, registerCmd := m.register.Update(msg)
+		m.register = updateRegister.(models.RegisterModel)
+		cmds = append(cmds, registerCmd)
+
+		if m.login.Back {
+			m.state = MenuView
+			m.login.Back = false
+		}
 	}
 
 	return m, tea.Batch(cmds...)
@@ -84,6 +101,8 @@ func (m MainModel) View() string {
 		return m.menu.View()
 	case LoginView:
 		return m.login.View()
+	case RegisterView:
+		return m.register.View()
 	default:
 		return "Unknown view"
 	}

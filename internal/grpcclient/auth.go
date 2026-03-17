@@ -21,3 +21,17 @@ func (c *Client) Login(ctx context.Context, email string, password string) error
 	fmt.Println(request.GetResult())
 	return nil
 }
+
+func (c *Client) Register(ctx context.Context, email string, password string) error {
+	request, reqErr := c.client.Register(ctx, pb.RegisterRequest_builder{
+		Email:    proto.String(email),
+		Password: proto.String(password),
+	}.Build())
+
+	if reqErr != nil {
+		return reqErr
+	}
+
+	fmt.Println(request.GetResult())
+	return nil
+}

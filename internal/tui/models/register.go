@@ -11,17 +11,16 @@ import (
 	"go.uber.org/zap"
 )
 
-type LoginModel struct {
+type RegisterModel struct {
 	emailInput textinput.Model
 	passInput  textinput.Model
 	focusIndex int
 	Success    bool
 	Back       bool
-	Email      string
 	ErrorMsg   string
 }
 
-func NewLoginModel() LoginModel {
+func NewRegisterModel() RegisterModel {
 	email := textinput.New()
 	email.Placeholder = "Email"
 	email.Focus()
@@ -31,11 +30,11 @@ func NewLoginModel() LoginModel {
 	pass := textinput.New()
 	pass.Placeholder = "Password"
 	pass.EchoMode = textinput.EchoPassword
-	pass.EchoCharacter = 'x'
+	pass.EchoCharacter = '•'
 	pass.CharLimit = 100
 	pass.Width = 30
 
-	return LoginModel{
+	return RegisterModel{
 		emailInput: email,
 		passInput:  pass,
 		focusIndex: 0,
@@ -44,11 +43,11 @@ func NewLoginModel() LoginModel {
 	}
 }
 
-func (m LoginModel) Init() tea.Cmd {
+func (m RegisterModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m LoginModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
+func (m RegisterModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := message.(type) {
@@ -67,12 +66,13 @@ func (m LoginModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 					ctx := context.Background()
 					client := grpcclient.NewClient(&zap.Logger{})
 					defer client.Close()
-					err := client.Login(ctx, m.emailInput.Value(), m.passInput.Value())
+					err := client.Register(ctx, m.emailInput.Value(), m.passInput.Value())
 					if err != nil {
-						m.ErrorMsg = "Invalid email or password"
+						m.Success = false
+						m.ErrorMsg = err.Error()
 					} else {
 						m.Success = true
-						m.Email = m.emailInput.Value()
+						m.Back = true
 					}
 				} else {
 					m.ErrorMsg = "Invalid email or password"
@@ -109,7 +109,7 @@ func (m LoginModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *LoginModel) updateFocus() tea.Cmd {
+func (m *RegisterModel) updateFocus() tea.Cmd {
 	if m.focusIndex == 0 {
 		m.emailInput.Focus()
 		m.passInput.Blur()
@@ -125,16 +125,16 @@ func (m *LoginModel) updateFocus() tea.Cmd {
 	}
 }
 
-func (m LoginModel) validateForm() bool {
+func (m RegisterModel) validateForm() bool {
 	email := m.emailInput.Value()
 	pass := m.passInput.Value()
 	return strings.Contains(email, "@") && len(pass) >= 3
 }
 
-func (m LoginModel) View() string {
+func (m RegisterModel) View() string {
 	var b strings.Builder
 
-	b.WriteString(styles.RenderTitle("Login"))
+	b.WriteString(styles.RenderTitle("Register"))
 	b.WriteString("\n\n")
 
 	b.WriteString(styles.NormalStyle.Render("Email:"))

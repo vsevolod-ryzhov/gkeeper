@@ -2,6 +2,7 @@ package grpcserver
 
 import (
 	"fmt"
+	"gkeeper/internal/storage"
 	"net"
 
 	"go.uber.org/zap"
@@ -28,7 +29,7 @@ func NewServer(config *ServerConfig, logger *zap.Logger) *Server {
 	}
 }
 
-func (s *Server) Start() error {
+func (s *Server) Start(storage *storage.PostgresStorage) error {
 	listen, err := net.Listen("tcp", s.config.AppPort)
 	if err != nil {
 		s.logger.Error("failed to listen", zap.Error(err))
@@ -45,7 +46,7 @@ func (s *Server) Start() error {
 	s.grpcServer = grpc.NewServer(grpc.Creds(tlsCreds))
 	s.logger.Info("gRPC server started", zap.String("port", s.config.AppPort))
 
-	gkeeperServer := NewGKeeperServer(s.logger)
+	gkeeperServer := NewGKeeperServer(s.logger, storage)
 	pb.RegisterGKeeperServer(s.grpcServer, gkeeperServer)
 
 	if serveErr := s.grpcServer.Serve(listen); serveErr != nil {
