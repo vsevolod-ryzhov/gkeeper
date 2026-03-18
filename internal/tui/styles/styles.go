@@ -20,6 +20,7 @@ var (
 			PaddingRight(2).
 			PaddingTop(1).
 			PaddingBottom(1).
+			MarginTop(1).
 			MarginBottom(1).
 			Width(50).
 			Align(lipgloss.Center)

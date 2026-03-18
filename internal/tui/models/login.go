@@ -62,6 +62,7 @@ func (m LoginModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case "tab", "shift+tab", "enter", "up", "down":
+			m.ErrorMsg = ""
 			if msg.String() == "enter" && m.focusIndex == 2 {
 				if m.validateForm() {
 					ctx := context.Background()
@@ -135,7 +136,7 @@ func (m LoginModel) View() string {
 	var b strings.Builder
 
 	b.WriteString(styles.RenderTitle("Login"))
-	b.WriteString("\n\n")
+	b.WriteString("\n")
 
 	b.WriteString(styles.NormalStyle.Render("Email:"))
 	b.WriteString("\n")

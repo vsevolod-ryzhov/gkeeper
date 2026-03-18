@@ -2,13 +2,11 @@ package grpcserver
 
 import (
 	"context"
-	"fmt"
-	"gkeeper/internal/storage"
-	"strconv"
-
 	"errors"
 	"gkeeper/api/proto"
+	"gkeeper/internal/storage"
 
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -22,7 +20,7 @@ func (gs *GKeeperServer) Register(ctx context.Context, req *proto.RegisterReques
 		return &response, status.Errorf(codes.Unauthenticated, "invalid password: %v", hashErr)
 	}
 
-	user, err := gs.storage.CreateUser(ctx, req.GetEmail(), hashedPassword)
+	_, err := gs.storage.CreateUser(ctx, req.GetEmail(), hashedPassword)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserAlreadyExists) {
 			return &response, status.Errorf(codes.AlreadyExists, "user already exists")
@@ -30,7 +28,7 @@ func (gs *GKeeperServer) Register(ctx context.Context, req *proto.RegisterReques
 		return &response, status.Errorf(codes.Internal, "internal error: %v", err.Error())
 	}
 
-	response.SetResult(strconv.FormatInt(user.ID, 10))
+	response.SetResult("User registered successfully")
 
 	return &response, nil
 }
@@ -50,8 +48,13 @@ func (gs *GKeeperServer) Login(ctx context.Context, req *proto.LoginRequest) (*p
 		return &response, status.Errorf(codes.Unauthenticated, "user not found")
 	}
 
-	// TODO: real implementation here
-	response.SetResult(fmt.Sprintf("Login %s legged in", req.GetEmail()))
+	token, err := gs.jwtManager.GenerateToken(user.ID, user.Email)
+	if err != nil {
+		gs.logger.Error("failed to generate token", zap.Error(err))
+		return &response, status.Errorf(codes.Internal, "failed to generate token")
+	}
+
+	response.SetResult(token)
 
 	return &response, nil
 }

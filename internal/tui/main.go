@@ -38,6 +38,8 @@ func (m MainModel) Init() tea.Cmd {
 		return m.menu.Init()
 	case LoginView:
 		return m.login.Init()
+	case RegisterView:
+		return m.register.Init()
 	}
 
 	return nil
@@ -86,9 +88,9 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.register = updateRegister.(models.RegisterModel)
 		cmds = append(cmds, registerCmd)
 
-		if m.login.Back {
+		if m.register.Back {
 			m.state = MenuView
-			m.login.Back = false
+			m.register.Back = false
 		}
 	}
 

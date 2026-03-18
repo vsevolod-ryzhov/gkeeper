@@ -2,8 +2,11 @@ package grpcserver
 
 import (
 	"fmt"
+	"gkeeper/internal/config"
+	"gkeeper/internal/jwt"
 	"gkeeper/internal/storage"
 	"net"
+	"time"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -42,11 +45,17 @@ func (s *Server) Start(storage *storage.PostgresStorage) error {
 		s.logger.Fatal("failed to generate tls creds: %v", zap.Error(err))
 	}
 
+	jwtManager := jwt.NewJWTManager(config.Options.JWTSecretKey, 24*time.Hour)
+	authInterceptor := NewAuthInterceptor(jwtManager)
+
 	s.logger.Info("gRPC server listening", zap.String("port", s.config.AppPort))
-	s.grpcServer = grpc.NewServer(grpc.Creds(tlsCreds))
+	s.grpcServer = grpc.NewServer(
+		grpc.Creds(tlsCreds),
+		grpc.UnaryInterceptor(authInterceptor.Unary()),
+	)
 	s.logger.Info("gRPC server started", zap.String("port", s.config.AppPort))
 
-	gkeeperServer := NewGKeeperServer(s.logger, storage)
+	gkeeperServer := NewGKeeperServer(s.logger, storage, jwtManager)
 	pb.RegisterGKeeperServer(s.grpcServer, gkeeperServer)
 
 	if serveErr := s.grpcServer.Serve(listen); serveErr != nil {

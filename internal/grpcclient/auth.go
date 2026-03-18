@@ -18,7 +18,10 @@ func (c *Client) Login(ctx context.Context, email string, password string) error
 		return reqErr
 	}
 
-	fmt.Println(request.GetResult())
+	token := request.GetResult()
+	c.SetToken(token)
+
+	fmt.Println("Successfully logged in")
 	return nil
 }
 
