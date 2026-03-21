@@ -13,6 +13,7 @@ const (
 	LoginView
 	RegisterView
 	DashboardView
+	CreateView
 )
 
 type MainModel struct {
@@ -21,6 +22,7 @@ type MainModel struct {
 	login     models.LoginModel
 	register  models.RegisterModel
 	dashboard models.DashboardModel
+	create    models.CreateModel
 
 	authToken string
 	userEmail string
@@ -33,6 +35,7 @@ func NewMainModel() MainModel {
 		login:     models.NewLoginModel(),
 		register:  models.NewRegisterModel(),
 		dashboard: models.NewDashboardModel(),
+		create:    models.NewCreateModel(),
 	}
 }
 
@@ -46,6 +49,8 @@ func (m MainModel) Init() tea.Cmd {
 		return m.register.Init()
 	case DashboardView:
 		return m.dashboard.Init()
+	case CreateView:
+		return m.create.Init()
 	}
 
 	return nil
@@ -120,6 +125,10 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if m.dashboard.Selected != "" {
 			switch m.dashboard.Selected {
+			case "new":
+				m.state = CreateView
+				m.dashboard.Selected = ""
+				cmds = append(cmds, m.create.Init())
 			case "logout":
 				m.state = MenuView
 				m.dashboard.Selected = ""
@@ -132,6 +141,20 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.authToken = ""
 			m.userEmail = ""
 			m.dashboard.Logout = false
+		}
+
+	case CreateView:
+		updatedCreate, createCmd := m.create.Update(msg)
+		m.create = updatedCreate.(models.CreateModel)
+		cmds = append(cmds, createCmd)
+
+		if m.create.Selected != "" {
+			switch m.create.Selected {
+			case "back":
+				m.state = DashboardView
+				m.create.Selected = ""
+				cmds = append(cmds, m.dashboard.Init())
+			}
 		}
 	}
 
@@ -148,6 +171,8 @@ func (m MainModel) View() string {
 		return m.register.View()
 	case DashboardView:
 		return m.dashboard.View()
+	case CreateView:
+		return m.create.View()
 	default:
 		return "Unknown view"
 	}
