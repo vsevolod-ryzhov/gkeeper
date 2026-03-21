@@ -12,23 +12,27 @@ const (
 	MenuView SessionState = iota
 	LoginView
 	RegisterView
+	DashboardView
 )
 
 type MainModel struct {
-	state    SessionState
-	menu     models.MenuModel
-	login    models.LoginModel
-	register models.RegisterModel
+	state     SessionState
+	menu      models.MenuModel
+	login     models.LoginModel
+	register  models.RegisterModel
+	dashboard models.DashboardModel
 
+	authToken string
 	userEmail string
 }
 
 func NewMainModel() MainModel {
 	return MainModel{
-		state:    MenuView,
-		menu:     models.NewMenuModel(),
-		login:    models.NewLoginModel(),
-		register: models.NewRegisterModel(),
+		state:     MenuView,
+		menu:      models.NewMenuModel(),
+		login:     models.NewLoginModel(),
+		register:  models.NewRegisterModel(),
+		dashboard: models.NewDashboardModel(),
 	}
 }
 
@@ -40,6 +44,8 @@ func (m MainModel) Init() tea.Cmd {
 		return m.login.Init()
 	case RegisterView:
 		return m.register.Init()
+	case DashboardView:
+		return m.dashboard.Init()
 	}
 
 	return nil
@@ -64,6 +70,10 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.state = RegisterView
 				m.menu.Selected = ""
 				cmds = append(cmds, m.register.Init())
+			case "dashboard":
+				m.state = DashboardView
+				m.menu.Selected = ""
+				cmds = append(cmds, m.dashboard.Init())
 			case "exit":
 				return m, tea.Quit
 			}
@@ -75,7 +85,11 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, loginCmd)
 
 		if m.login.Success {
-			// Display dashboard screen for logged-in user
+			m.authToken = m.login.Token
+			m.userEmail = m.login.Email
+			m.state = DashboardView
+			m.login.Success = false
+			cmds = append(cmds, m.dashboard.Init())
 		}
 
 		if m.login.Back {
@@ -88,9 +102,36 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.register = updateRegister.(models.RegisterModel)
 		cmds = append(cmds, registerCmd)
 
+		if m.register.Success {
+			m.state = MenuView
+			m.register.Success = false
+		}
+
 		if m.register.Back {
 			m.state = MenuView
 			m.register.Back = false
+		}
+
+	case DashboardView:
+		updatedDashboard, dashboardCmd := m.dashboard.Update(msg)
+		m.dashboard = updatedDashboard.(models.DashboardModel)
+		m.dashboard.Email = m.userEmail
+		cmds = append(cmds, dashboardCmd)
+
+		if m.dashboard.Selected != "" {
+			switch m.dashboard.Selected {
+			case "logout":
+				m.state = MenuView
+				m.dashboard.Selected = ""
+				cmds = append(cmds, m.menu.Init())
+			}
+		}
+
+		if m.dashboard.Logout {
+			m.state = MenuView
+			m.authToken = ""
+			m.userEmail = ""
+			m.dashboard.Logout = false
 		}
 	}
 
@@ -105,6 +146,8 @@ func (m MainModel) View() string {
 		return m.login.View()
 	case RegisterView:
 		return m.register.View()
+	case DashboardView:
+		return m.dashboard.View()
 	default:
 		return "Unknown view"
 	}

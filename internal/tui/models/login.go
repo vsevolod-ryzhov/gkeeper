@@ -17,6 +17,7 @@ type LoginModel struct {
 	focusIndex int
 	Success    bool
 	Back       bool
+	Token      string
 	Email      string
 	ErrorMsg   string
 }
@@ -74,6 +75,9 @@ func (m LoginModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 					} else {
 						m.Success = true
 						m.Email = m.emailInput.Value()
+						m.Token = client.GetToken()
+						m.emailInput.SetValue("")
+						m.passInput.SetValue("")
 					}
 				} else {
 					m.ErrorMsg = "Invalid email or password"
