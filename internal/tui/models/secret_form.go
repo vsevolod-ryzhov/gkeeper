@@ -33,6 +33,7 @@ type Field struct {
 
 type SecretFormModel struct {
 	SecretType   string
+	TitleInput   textinput.Model
 	Fields       []Field
 	Metadata     map[string]string
 	CurrentField int
@@ -56,6 +57,12 @@ func NewSecretFormModel(secretType string, editing bool, existingData *model.Sec
 		Editing:    editing,
 		AuthToken:  authToken,
 	}
+
+	m.TitleInput = textinput.New()
+	m.TitleInput.Placeholder = "Enter title"
+	m.TitleInput.CharLimit = 200
+	m.TitleInput.Width = 50
+	m.TitleInput.Focus()
 
 	m.MetaKey = textinput.New()
 	m.MetaKey.Placeholder = "Key (e.g., website, note, etc.)"
@@ -206,8 +213,13 @@ func (m SecretFormModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if m.CurrentField < len(m.Fields) {
-		field := &m.Fields[m.CurrentField]
+	if m.CurrentField == 0 {
+		var cmd tea.Cmd
+		m.TitleInput, cmd = m.TitleInput.Update(message)
+		return m, cmd
+	} else if m.CurrentField <= len(m.Fields) {
+		fieldIndex := m.CurrentField - 1
+		field := &m.Fields[fieldIndex]
 		var cmd tea.Cmd
 
 		if field.Type == FieldTypeText || field.Type == FieldTypePassword {
@@ -348,7 +360,6 @@ func (m *SecretFormModel) saveSecret() tea.Cmd {
 		client := grpcclient.NewClient(&zap.Logger{})
 		defer client.Close()
 
-		// Собираем данные из формы
 		secretData := m.collectData()
 
 		var err error
@@ -423,6 +434,14 @@ func (m SecretFormModel) View() string {
 	s.WriteString(styles.RenderTitle(fmt.Sprintf("%s: %s", title, m.SecretType)))
 	s.WriteString("\n\n")
 
+	cursor := " "
+	if m.CurrentField == 0 {
+		cursor = ">"
+	}
+	s.WriteString(fmt.Sprintf("%s Title*: ", cursor))
+	s.WriteString(m.TitleInput.View())
+	s.WriteString("\n\n")
+
 	for i, field := range m.Fields {
 		cursor := " "
 		if m.CurrentField == i {
@@ -456,7 +475,7 @@ func (m SecretFormModel) View() string {
 		s.WriteString("\n")
 	}
 
-	cursor := " "
+	cursor = " "
 	if m.CurrentField == len(m.Fields) {
 		cursor = ">"
 	}
