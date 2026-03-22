@@ -29,7 +29,10 @@ message LoginRequest {
 }
 
 message LoginResponse {
-  string result = 1;
+  string token = 1;
+  string salt = 2;
+  string user_id = 3;
+  string email = 4;
 }
 
 message CreateSecretRequest {

@@ -2,11 +2,14 @@ package grpcserver
 
 import (
 	"context"
+	"fmt"
 	"gkeeper/api/proto"
 )
 
 func (gs *GKeeperServer) CreateSecret(ctx context.Context, req *proto.CreateSecretRequest) (*proto.CreateSecretResponse, error) {
 	var response proto.CreateSecretResponse
+
+	fmt.Println(req)
 
 	return &response, nil
 }

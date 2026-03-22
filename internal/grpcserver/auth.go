@@ -2,6 +2,8 @@ package grpcserver
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"gkeeper/api/proto"
 	"gkeeper/internal/storage"
@@ -20,7 +22,12 @@ func (gs *GKeeperServer) Register(ctx context.Context, req *proto.RegisterReques
 		return &response, status.Errorf(codes.Unauthenticated, "invalid password: %v", hashErr)
 	}
 
-	_, err := gs.storage.CreateUser(ctx, req.GetEmail(), hashedPassword)
+	salt := make([]byte, 32)
+	if _, err := rand.Read(salt); err != nil {
+		return &response, status.Errorf(codes.Internal, "internal error: %v", err.Error())
+	}
+
+	_, err := gs.storage.CreateUser(ctx, req.GetEmail(), hashedPassword, base64.StdEncoding.EncodeToString(salt))
 	if err != nil {
 		if errors.Is(err, storage.ErrUserAlreadyExists) {
 			return &response, status.Errorf(codes.AlreadyExists, "user already exists")
@@ -41,7 +48,7 @@ func (gs *GKeeperServer) Login(ctx context.Context, req *proto.LoginRequest) (*p
 		if errors.Is(err, storage.ErrUserNotFound) {
 			return &response, status.Errorf(codes.Unauthenticated, "user not found")
 		}
-		return &response, status.Errorf(codes.Internal, "intrnal error")
+		return &response, status.Errorf(codes.Internal, "internal error")
 	}
 
 	if !checkPasswordHash(req.GetPassword(), user.PasswordHash) {
@@ -54,7 +61,10 @@ func (gs *GKeeperServer) Login(ctx context.Context, req *proto.LoginRequest) (*p
 		return &response, status.Errorf(codes.Internal, "failed to generate token")
 	}
 
-	response.SetResult(token)
+	response.SetToken(token)
+	response.SetSalt(user.Salt)
+	response.SetEmail(user.Email)
+	response.SetUserId(user.ID.String())
 
 	return &response, nil
 }

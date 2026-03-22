@@ -4,6 +4,7 @@ import (
 	"context"
 	pb "gkeeper/api/proto"
 	"gkeeper/internal/config"
+	"gkeeper/internal/crypto"
 	"log"
 	"sync"
 
@@ -17,7 +18,10 @@ type Client struct {
 	client     pb.GKeeperClient
 	conn       *grpc.ClientConn
 	logger     *zap.Logger
+	crypto     *crypto.Crypto
 	token      string
+	userID     string
+	email      string
 	tokenMutex sync.RWMutex
 }
 
@@ -63,10 +67,45 @@ func (c *Client) GetToken() string {
 	return c.token
 }
 
+func (c *Client) SetUserID(userID string) {
+	c.tokenMutex.Lock()
+	defer c.tokenMutex.Unlock()
+	c.userID = userID
+}
+
+func (c *Client) GetUserID() string {
+	c.tokenMutex.RLock()
+	defer c.tokenMutex.RUnlock()
+	return c.userID
+}
+
+func (c *Client) SetEmail(email string) {
+	c.tokenMutex.Lock()
+	defer c.tokenMutex.Unlock()
+	c.email = email
+}
+
+func (c *Client) GetEmail() string {
+	c.tokenMutex.RLock()
+	defer c.tokenMutex.RUnlock()
+	return c.email
+}
+
+func (c *Client) SetCrypto(crypto *crypto.Crypto) {
+	c.tokenMutex.Lock()
+	defer c.tokenMutex.Unlock()
+	c.crypto = crypto
+}
+
+func (c *Client) GetCrypto() *crypto.Crypto {
+	c.tokenMutex.RLock()
+	defer c.tokenMutex.RUnlock()
+	return c.crypto
+}
+
 func (c *Client) createContextWithToken(ctx context.Context) context.Context {
-	token := c.GetToken()
-	if token != "" {
-		return metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
-	}
-	return ctx
+	//if c.token != "" {
+	return metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+c.token)
+	//}
+	//return ctx
 }

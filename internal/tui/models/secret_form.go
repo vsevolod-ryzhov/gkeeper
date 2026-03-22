@@ -2,6 +2,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"gkeeper/internal/grpcclient"
 	"gkeeper/internal/model"
@@ -50,12 +51,13 @@ type SecretFormModel struct {
 
 func NewSecretFormModel(secretType string, editing bool, existingData *model.Secret, authToken string) SecretFormModel {
 	m := SecretFormModel{
-		SecretType: secretType,
-		Fields:     []Field{},
-		Metadata:   make(map[string]string),
-		AddingMeta: false,
-		Editing:    editing,
-		AuthToken:  authToken,
+		SecretType:   secretType,
+		Fields:       []Field{},
+		Metadata:     make(map[string]string),
+		AddingMeta:   false,
+		Editing:      editing,
+		AuthToken:    authToken,
+		CurrentField: 0,
 	}
 
 	m.TitleInput = textinput.New()
@@ -154,14 +156,15 @@ func (m *SecretFormModel) loadExistingData(secret *model.Secret) {
 }
 
 func (m SecretFormModel) Init() tea.Cmd {
-	if len(m.Fields) > 0 && m.CurrentField < len(m.Fields) {
-		if m.Fields[m.CurrentField].Type == FieldTypeText || m.Fields[m.CurrentField].Type == FieldTypePassword {
-			return m.Fields[m.CurrentField].Input.Focus()
-		} else if m.Fields[m.CurrentField].Type == FieldTypeTextArea {
-			return m.Fields[m.CurrentField].TextArea.Focus()
-		}
-	}
-	return nil
+	//if len(m.Fields) > 0 && m.CurrentField < len(m.Fields) {
+	//	if m.Fields[m.CurrentField].Type == FieldTypeText || m.Fields[m.CurrentField].Type == FieldTypePassword {
+	//		return m.Fields[m.CurrentField].Input.Focus()
+	//	} else if m.Fields[m.CurrentField].Type == FieldTypeTextArea {
+	//		return m.Fields[m.CurrentField].TextArea.Focus()
+	//	}
+	//}
+	//return nil
+	return m.TitleInput.Focus()
 }
 
 func (m SecretFormModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
@@ -184,22 +187,19 @@ func (m SecretFormModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		case "down", "tab":
-			if m.CurrentField < len(m.Fields) {
+			totalFields := 1 + len(m.Fields) + 1
+			if m.CurrentField < totalFields-1 {
 				m.CurrentField++
-				if m.CurrentField == len(m.Fields) {
-					m.blurAll()
-				} else {
-					m.updateFocus()
-				}
+				m.updateFocus()
 			}
 			return m, nil
 		case "enter":
-			if m.CurrentField < len(m.Fields) && m.Fields[m.CurrentField].Type == FieldTypeTextArea {
+			if m.CurrentField == len(m.Fields) && m.Fields[m.CurrentField].Type == FieldTypeTextArea {
 				// Skip for Notes textarea multi lining
 				break
 			}
 
-			if m.CurrentField == len(m.Fields) {
+			if m.CurrentField == 1+len(m.Fields) {
 				if m.validateForm() {
 					return m, m.saveSecret()
 				}
@@ -300,19 +300,23 @@ func (m SecretFormModel) updateAddingMeta(message tea.Msg) (tea.Model, tea.Cmd) 
 }
 
 func (m *SecretFormModel) updateFocus() {
+	m.TitleInput.Blur()
 	for i := range m.Fields {
 		if m.Fields[i].Type == FieldTypeText || m.Fields[i].Type == FieldTypePassword {
-			if i == m.CurrentField {
-				m.Fields[i].Input.Focus()
-			} else {
-				m.Fields[i].Input.Blur()
-			}
+			m.Fields[i].Input.Blur()
 		} else if m.Fields[i].Type == FieldTypeTextArea {
-			if i == m.CurrentField {
-				m.Fields[i].TextArea.Focus()
-			} else {
-				m.Fields[i].TextArea.Blur()
-			}
+			m.Fields[i].TextArea.Blur()
+		}
+	}
+
+	if m.CurrentField == 0 {
+		m.TitleInput.Focus()
+	} else if m.CurrentField <= len(m.Fields) {
+		fieldIndex := m.CurrentField - 1
+		if m.Fields[fieldIndex].Type == FieldTypeText || m.Fields[fieldIndex].Type == FieldTypePassword {
+			m.Fields[fieldIndex].Input.Focus()
+		} else if m.Fields[fieldIndex].Type == FieldTypeTextArea {
+			m.Fields[fieldIndex].TextArea.Focus()
 		}
 	}
 }
@@ -356,8 +360,8 @@ func (m *SecretFormModel) validateForm() bool {
 func (m *SecretFormModel) saveSecret() tea.Cmd {
 	// TODO: save form data here
 	return func() tea.Msg {
-		//ctx := context.Background()
-		client := grpcclient.NewClient(&zap.Logger{})
+		ctx := context.Background()
+		client := grpcclient.NewClient(zap.Must(zap.NewProduction()))
 		defer client.Close()
 
 		secretData := m.collectData()
@@ -368,7 +372,7 @@ func (m *SecretFormModel) saveSecret() tea.Cmd {
 			//err = client.UpdateSecret(ctx, m.AuthToken, m.SecretID, secretData)
 		} else {
 			fmt.Println(secretData)
-			//err = client.CreateSecret(ctx, m.AuthToken, m.SecretType, secretData)
+			err = client.CreateSecret(ctx, m.AuthToken, m.TitleInput.Value(), m.SecretType, secretData)
 		}
 
 		if err != nil {
@@ -426,7 +430,6 @@ func (m SecretFormModel) View() string {
 	}
 
 	var s strings.Builder
-
 	title := "Create New Secret"
 	if m.Editing {
 		title = "Edit Secret"
@@ -444,7 +447,7 @@ func (m SecretFormModel) View() string {
 
 	for i, field := range m.Fields {
 		cursor := " "
-		if m.CurrentField == i {
+		if m.CurrentField == i+1 {
 			cursor = ">"
 		}
 
@@ -476,10 +479,10 @@ func (m SecretFormModel) View() string {
 	}
 
 	cursor = " "
-	if m.CurrentField == len(m.Fields) {
+	if m.CurrentField == 1+len(m.Fields) {
 		cursor = ">"
 	}
-	s.WriteString(fmt.Sprintf("%s %s\n\n", cursor, styles.RenderButton("SAVE", m.CurrentField == len(m.Fields))))
+	s.WriteString(fmt.Sprintf("%s %s\n\n", cursor, styles.RenderButton("SAVE", m.CurrentField == 1+len(m.Fields))))
 
 	s.WriteString(styles.FooterStyle.Render("[Ctrl+B] Add metadata field"))
 	s.WriteString("\n\n")

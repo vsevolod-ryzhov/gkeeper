@@ -144,6 +144,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case CreateView:
+		m.create.AuthToken = m.authToken
 		updatedCreate, createCmd := m.create.Update(msg)
 		m.create = updatedCreate.(models.CreateModel)
 		cmds = append(cmds, createCmd)

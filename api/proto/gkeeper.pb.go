@@ -322,7 +322,10 @@ func (b0 LoginRequest_builder) Build() *LoginRequest {
 
 type LoginResponse struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Result      *string                `protobuf:"bytes,1,opt,name=result"`
+	xxx_hidden_Token       *string                `protobuf:"bytes,1,opt,name=token"`
+	xxx_hidden_Salt        *string                `protobuf:"bytes,2,opt,name=salt"`
+	xxx_hidden_UserId      *string                `protobuf:"bytes,3,opt,name=user_id,json=userId"`
+	xxx_hidden_Email       *string                `protobuf:"bytes,4,opt,name=email"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -354,46 +357,142 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *LoginResponse) GetResult() string {
+func (x *LoginResponse) GetToken() string {
 	if x != nil {
-		if x.xxx_hidden_Result != nil {
-			return *x.xxx_hidden_Result
+		if x.xxx_hidden_Token != nil {
+			return *x.xxx_hidden_Token
 		}
 		return ""
 	}
 	return ""
 }
 
-func (x *LoginResponse) SetResult(v string) {
-	x.xxx_hidden_Result = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 1)
+func (x *LoginResponse) GetSalt() string {
+	if x != nil {
+		if x.xxx_hidden_Salt != nil {
+			return *x.xxx_hidden_Salt
+		}
+		return ""
+	}
+	return ""
 }
 
-func (x *LoginResponse) HasResult() bool {
+func (x *LoginResponse) GetUserId() string {
+	if x != nil {
+		if x.xxx_hidden_UserId != nil {
+			return *x.xxx_hidden_UserId
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *LoginResponse) GetEmail() string {
+	if x != nil {
+		if x.xxx_hidden_Email != nil {
+			return *x.xxx_hidden_Email
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *LoginResponse) SetToken(v string) {
+	x.xxx_hidden_Token = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 4)
+}
+
+func (x *LoginResponse) SetSalt(v string) {
+	x.xxx_hidden_Salt = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 4)
+}
+
+func (x *LoginResponse) SetUserId(v string) {
+	x.xxx_hidden_UserId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 4)
+}
+
+func (x *LoginResponse) SetEmail(v string) {
+	x.xxx_hidden_Email = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 4)
+}
+
+func (x *LoginResponse) HasToken() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
 }
 
-func (x *LoginResponse) ClearResult() {
+func (x *LoginResponse) HasSalt() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *LoginResponse) HasUserId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *LoginResponse) HasEmail() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
+}
+
+func (x *LoginResponse) ClearToken() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
-	x.xxx_hidden_Result = nil
+	x.xxx_hidden_Token = nil
+}
+
+func (x *LoginResponse) ClearSalt() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Salt = nil
+}
+
+func (x *LoginResponse) ClearUserId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_UserId = nil
+}
+
+func (x *LoginResponse) ClearEmail() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	x.xxx_hidden_Email = nil
 }
 
 type LoginResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Result *string
+	Token  *string
+	Salt   *string
+	UserId *string
+	Email  *string
 }
 
 func (b0 LoginResponse_builder) Build() *LoginResponse {
 	m0 := &LoginResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	if b.Result != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 1)
-		x.xxx_hidden_Result = b.Result
+	if b.Token != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 4)
+		x.xxx_hidden_Token = b.Token
+	}
+	if b.Salt != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 4)
+		x.xxx_hidden_Salt = b.Salt
+	}
+	if b.UserId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 4)
+		x.xxx_hidden_UserId = b.UserId
+	}
+	if b.Email != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 4)
+		x.xxx_hidden_Email = b.Email
 	}
 	return m0
 }
@@ -2028,9 +2127,12 @@ const file_gkeeper_proto_rawDesc = "" +
 	"\x06result\x18\x01 \x01(\tR\x06result\"@\n" +
 	"\fLoginRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"'\n" +
-	"\rLoginResponse\x12\x16\n" +
-	"\x06result\x18\x01 \x01(\tR\x06result\"\xb5\x01\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"h\n" +
+	"\rLoginResponse\x12\x14\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12\x12\n" +
+	"\x04salt\x18\x02 \x01(\tR\x04salt\x12\x17\n" +
+	"\auser_id\x18\x03 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05email\x18\x04 \x01(\tR\x05email\"\xb5\x01\n" +
 	"\x13CreateSecretRequest\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x12\n" +

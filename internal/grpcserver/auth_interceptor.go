@@ -2,6 +2,7 @@ package grpcserver
 
 import (
 	"context"
+	"fmt"
 	"gkeeper/internal/jwt"
 	"strings"
 
@@ -58,7 +59,7 @@ func (interceptor *AuthInterceptor) authorize(ctx context.Context) (*jwt.Claims,
 	if !ok {
 		return nil, status.Errorf(codes.Unauthenticated, "metadata is not provided")
 	}
-
+	fmt.Println(md)
 	values := md["authorization"]
 	if len(values) == 0 {
 		return nil, status.Errorf(codes.Unauthenticated, "authorization token is not provided")

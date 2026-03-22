@@ -11,17 +11,17 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-func (s *PostgresStorage) CreateUser(ctx context.Context, email string, passwordHash string) (*model.UserRecord, error) {
+func (s *PostgresStorage) CreateUser(ctx context.Context, email string, passwordHash string, salt string) (*model.UserRecord, error) {
 	var user model.UserRecord
 
 	err := (sq.Insert("users").
-		Columns("email", "password_hash").
-		Values(email, passwordHash).
-		Suffix("RETURNING id, email, password_hash, created_at").
+		Columns("email", "password_hash", "salt").
+		Values(email, passwordHash, salt).
+		Suffix("RETURNING id, email, password_hash, salt, created_at").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(s.db).
 		QueryRowContext(ctx)).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.CreatedAt)
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.Salt, &user.CreatedAt)
 
 	if err != nil {
 		var pqErr *pgconn.PgError

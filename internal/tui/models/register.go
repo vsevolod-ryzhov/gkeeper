@@ -65,7 +65,7 @@ func (m RegisterModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			if msg.String() == "enter" && m.focusIndex == 2 {
 				if m.validateForm() {
 					ctx := context.Background()
-					client := grpcclient.NewClient(&zap.Logger{})
+					client := grpcclient.NewClient(zap.Must(zap.NewProduction()))
 					defer client.Close()
 					err := client.Register(ctx, m.emailInput.Value(), m.passInput.Value())
 					if err != nil {

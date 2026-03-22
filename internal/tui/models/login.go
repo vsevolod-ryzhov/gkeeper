@@ -67,14 +67,14 @@ func (m LoginModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			if msg.String() == "enter" && m.focusIndex == 2 {
 				if m.validateForm() {
 					ctx := context.Background()
-					client := grpcclient.NewClient(&zap.Logger{})
+					client := grpcclient.NewClient(zap.Must(zap.NewProduction()))
 					defer client.Close()
 					err := client.Login(ctx, m.emailInput.Value(), m.passInput.Value())
 					if err != nil {
 						m.ErrorMsg = "Invalid email or password"
 					} else {
 						m.Success = true
-						m.Email = m.emailInput.Value()
+						m.Email = client.GetEmail()
 						m.Token = client.GetToken()
 						m.emailInput.SetValue("")
 						m.passInput.SetValue("")
