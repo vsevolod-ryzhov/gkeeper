@@ -25,6 +25,8 @@ type EncryptedPayload struct {
 	CardHolderName string `json:"card_holder_name,omitempty"`
 	ExpiryDate     string `json:"expiry_date,omitempty"`
 	CVV            string `json:"cvv,omitempty"`
+
+	Notes string `json:"notes,omitempty"`
 }
 
 type Metadata struct {

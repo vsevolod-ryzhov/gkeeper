@@ -86,6 +86,14 @@ var (
 			Foreground(Warning).
 			Bold(true).
 			MarginTop(1)
+
+	FocusedStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("205")).
+			Bold(true)
+
+	SubtitleStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("39")).
+			Bold(true)
 )
 
 func RenderTitle(text string) string {

@@ -149,7 +149,7 @@ func (m RegisterModel) View() string {
 	b.WriteString(styles.RenderInputField(m.passInput.Value(), m.passInput.Placeholder, m.focusIndex == 1))
 	b.WriteString("\n\n")
 
-	b.WriteString(styles.RenderButton("LOGIN", m.focusIndex == 2))
+	b.WriteString(styles.RenderButton("REGISTER", m.focusIndex == 2))
 	b.WriteString("\n\n")
 
 	if m.ErrorMsg != "" {

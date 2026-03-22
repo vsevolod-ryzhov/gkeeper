@@ -30,8 +30,8 @@ func (m DashboardModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
+func (m DashboardModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := message.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
