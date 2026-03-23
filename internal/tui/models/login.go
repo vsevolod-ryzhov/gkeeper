@@ -8,7 +8,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"go.uber.org/zap"
 )
 
 type LoginModel struct {
@@ -20,9 +19,10 @@ type LoginModel struct {
 	Token      string
 	Email      string
 	ErrorMsg   string
+	client     *grpcclient.Client
 }
 
-func NewLoginModel() LoginModel {
+func NewLoginModel(client *grpcclient.Client) LoginModel {
 	email := textinput.New()
 	email.Placeholder = "Email"
 	email.Focus()
@@ -42,6 +42,7 @@ func NewLoginModel() LoginModel {
 		focusIndex: 0,
 		Success:    false,
 		Back:       false,
+		client:     client,
 	}
 }
 
@@ -67,15 +68,13 @@ func (m LoginModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			if msg.String() == "enter" && m.focusIndex == 2 {
 				if m.validateForm() {
 					ctx := context.Background()
-					client := grpcclient.NewClient(zap.Must(zap.NewProduction()))
-					defer client.Close()
-					err := client.Login(ctx, m.emailInput.Value(), m.passInput.Value())
+					err := m.client.Login(ctx, m.emailInput.Value(), m.passInput.Value())
 					if err != nil {
 						m.ErrorMsg = "Invalid email or password"
 					} else {
 						m.Success = true
-						m.Email = client.GetEmail()
-						m.Token = client.GetToken()
+						m.Email = m.client.GetEmail()
+						m.Token = m.client.GetToken()
 						m.emailInput.SetValue("")
 						m.passInput.SetValue("")
 					}

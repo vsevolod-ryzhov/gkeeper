@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"gkeeper/internal/grpcclient"
 	"gkeeper/internal/tui/models"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,19 +24,21 @@ type MainModel struct {
 	register  models.RegisterModel
 	dashboard models.DashboardModel
 	create    models.CreateModel
+	client    *grpcclient.Client
 
 	authToken string
 	userEmail string
 }
 
-func NewMainModel() MainModel {
+func NewMainModel(client *grpcclient.Client) MainModel {
 	return MainModel{
 		state:     MenuView,
 		menu:      models.NewMenuModel(),
-		login:     models.NewLoginModel(),
-		register:  models.NewRegisterModel(),
+		login:     models.NewLoginModel(client),
+		register:  models.NewRegisterModel(client),
 		dashboard: models.NewDashboardModel(),
-		create:    models.NewCreateModel(),
+		create:    models.NewCreateModel(client),
+		client:    client,
 	}
 }
 

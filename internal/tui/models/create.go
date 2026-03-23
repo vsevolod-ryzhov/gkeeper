@@ -2,6 +2,7 @@
 package models
 
 import (
+	"gkeeper/internal/grpcclient"
 	"gkeeper/internal/model"
 	"gkeeper/internal/tui/styles"
 	"strings"
@@ -16,15 +17,17 @@ type CreateModel struct {
 	ShowForm  bool
 	FormModel SecretFormModel
 	AuthToken string
+	client    *grpcclient.Client
 }
 
-func NewCreateModel() CreateModel {
+func NewCreateModel(client *grpcclient.Client) CreateModel {
 	return CreateModel{
 		choices:   []string{model.SecretTypeCredentials, model.SecretTypeText, model.SecretTypeCard, model.SecretTypeBinary, "back"},
 		cursor:    0,
 		Selected:  "",
 		ShowForm:  false,
 		AuthToken: "",
+		client:    client,
 	}
 }
 
@@ -81,7 +84,7 @@ func (m CreateModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
-			m.FormModel = NewSecretFormModel(m.Selected, false, nil, m.AuthToken)
+			m.FormModel = NewSecretFormModel(m.Selected, false, nil, m.AuthToken, m.client)
 			m.ShowForm = true
 			return m, m.FormModel.Init()
 		}

@@ -12,7 +12,6 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"go.uber.org/zap"
 )
 
 type FieldType int
@@ -47,9 +46,10 @@ type SecretFormModel struct {
 	Editing      bool
 	SecretID     string
 	AuthToken    string
+	client       *grpcclient.Client
 }
 
-func NewSecretFormModel(secretType string, editing bool, existingData *model.Secret, authToken string) SecretFormModel {
+func NewSecretFormModel(secretType string, editing bool, existingData *model.Secret, authToken string, client *grpcclient.Client) SecretFormModel {
 	m := SecretFormModel{
 		SecretType:   secretType,
 		Fields:       []Field{},
@@ -58,6 +58,7 @@ func NewSecretFormModel(secretType string, editing bool, existingData *model.Sec
 		Editing:      editing,
 		AuthToken:    authToken,
 		CurrentField: 0,
+		client:       client,
 	}
 
 	m.TitleInput = textinput.New()
@@ -156,14 +157,6 @@ func (m *SecretFormModel) loadExistingData(secret *model.Secret) {
 }
 
 func (m SecretFormModel) Init() tea.Cmd {
-	//if len(m.Fields) > 0 && m.CurrentField < len(m.Fields) {
-	//	if m.Fields[m.CurrentField].Type == FieldTypeText || m.Fields[m.CurrentField].Type == FieldTypePassword {
-	//		return m.Fields[m.CurrentField].Input.Focus()
-	//	} else if m.Fields[m.CurrentField].Type == FieldTypeTextArea {
-	//		return m.Fields[m.CurrentField].TextArea.Focus()
-	//	}
-	//}
-	//return nil
 	return m.TitleInput.Focus()
 }
 
@@ -194,7 +187,8 @@ func (m SecretFormModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		case "enter":
-			if m.CurrentField == len(m.Fields) && m.Fields[m.CurrentField].Type == FieldTypeTextArea {
+			fieldIndex := m.CurrentField - 1
+			if fieldIndex >= 0 && fieldIndex < len(m.Fields) && m.Fields[fieldIndex].Type == FieldTypeTextArea {
 				// Skip for Notes textarea multi lining
 				break
 			}
@@ -321,16 +315,6 @@ func (m *SecretFormModel) updateFocus() {
 	}
 }
 
-func (m *SecretFormModel) blurAll() {
-	for i := range m.Fields {
-		if m.Fields[i].Type == FieldTypeText || m.Fields[i].Type == FieldTypePassword {
-			m.Fields[i].Input.Blur()
-		} else if m.Fields[i].Type == FieldTypeTextArea {
-			m.Fields[i].TextArea.Blur()
-		}
-	}
-}
-
 func (m *SecretFormModel) validateForm() bool {
 	for _, field := range m.Fields {
 		if field.Required {
@@ -358,21 +342,17 @@ func (m *SecretFormModel) validateForm() bool {
 }
 
 func (m *SecretFormModel) saveSecret() tea.Cmd {
-	// TODO: save form data here
 	return func() tea.Msg {
 		ctx := context.Background()
-		client := grpcclient.NewClient(zap.Must(zap.NewProduction()))
-		defer client.Close()
 
 		secretData := m.collectData()
 
 		var err error
 		if m.Editing {
 			fmt.Println(secretData)
-			//err = client.UpdateSecret(ctx, m.AuthToken, m.SecretID, secretData)
+			//err = m.client.UpdateSecret(ctx, m.AuthToken, m.SecretID, secretData)
 		} else {
-			fmt.Println(secretData)
-			err = client.CreateSecret(ctx, m.AuthToken, m.TitleInput.Value(), m.SecretType, secretData)
+			err = m.client.CreateSecret(ctx, m.AuthToken, m.TitleInput.Value(), m.SecretType, secretData)
 		}
 
 		if err != nil {

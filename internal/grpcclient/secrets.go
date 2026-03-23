@@ -12,48 +12,47 @@ import (
 )
 
 func (c *Client) CreateSecret(ctx context.Context, token string, title string, secretType string, data map[string]interface{}) error {
-	//encryptedDataMap, err := c.prepareEncryptedDataMap(secretType, data)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//plaintextJSON, err := json.Marshal(encryptedDataMap)
-	//if err != nil {
-	//	return fmt.Errorf("failed to marshal data: %w", err)
-	//}
-	//
-	//encryptedData, err := c.crypto.Encrypt(plaintextJSON)
-	//if err != nil {
-	//	return fmt.Errorf("failed to encrypt data: %w", err)
-	//}
-	//
+	encryptedDataMap, err := c.prepareEncryptedDataMap(secretType, data)
+	if err != nil {
+		return err
+	}
+
+	plaintextJSON, err := json.Marshal(encryptedDataMap)
+	if err != nil {
+		return fmt.Errorf("failed to marshal data: %w", err)
+	}
+
+	encryptedData, err := c.crypto.Encrypt(plaintextJSON)
+	if err != nil {
+		return fmt.Errorf("failed to encrypt data: %w", err)
+	}
+
 	metadataJSON, err := c.prepareMetadata(data)
 	if err != nil {
 		return err
 	}
-	//
+
 	filePath := ""
-	//if secretType == model.SecretTypeBinary {
-	//	if path, ok := data["file_path"].(string); ok {
-	//		filePath = path
-	//	}
-	//}
+	if secretType == model.SecretTypeBinary {
+		if path, ok := data["file_path"].(string); ok {
+			filePath = path
+		}
+	}
 	ctxWithToken := c.createContextWithToken(ctx)
 
 	response, reqErr := c.client.CreateSecret(ctxWithToken, pb.CreateSecretRequest_builder{
-		Token: proto.String(token),
-		Title: proto.String(title),
-		Type:  proto.String(secretType),
-		EncryptedData:/*[]byte(encryptedData)*/ []byte(metadataJSON),
-		Metadata: proto.String(metadataJSON),
-		FilePath: proto.String(filePath),
+		Token:         proto.String(token),
+		Title:         proto.String(title),
+		Type:          proto.String(secretType),
+		EncryptedData: []byte(encryptedData),
+		Metadata:      proto.String(metadataJSON),
+		FilePath:      proto.String(filePath),
 	}.Build())
 
 	if reqErr != nil {
 		return reqErr
 	}
 
-	fmt.Println(response)
 	c.logger.Info("Secret created successfully", zap.String("id", response.GetId()))
 	return nil
 }

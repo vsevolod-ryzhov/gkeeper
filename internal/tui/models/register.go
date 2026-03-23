@@ -8,7 +8,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"go.uber.org/zap"
 )
 
 type RegisterModel struct {
@@ -18,9 +17,10 @@ type RegisterModel struct {
 	Success    bool
 	Back       bool
 	ErrorMsg   string
+	client     *grpcclient.Client
 }
 
-func NewRegisterModel() RegisterModel {
+func NewRegisterModel(client *grpcclient.Client) RegisterModel {
 	email := textinput.New()
 	email.Placeholder = "Email"
 	email.Focus()
@@ -40,6 +40,7 @@ func NewRegisterModel() RegisterModel {
 		focusIndex: 0,
 		Success:    false,
 		Back:       false,
+		client:     client,
 	}
 }
 
@@ -65,9 +66,7 @@ func (m RegisterModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			if msg.String() == "enter" && m.focusIndex == 2 {
 				if m.validateForm() {
 					ctx := context.Background()
-					client := grpcclient.NewClient(zap.Must(zap.NewProduction()))
-					defer client.Close()
-					err := client.Register(ctx, m.emailInput.Value(), m.passInput.Value())
+					err := m.client.Register(ctx, m.emailInput.Value(), m.passInput.Value())
 					if err != nil {
 						m.Success = false
 						m.ErrorMsg = err.Error()
