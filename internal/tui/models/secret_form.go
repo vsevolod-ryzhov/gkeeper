@@ -1,4 +1,3 @@
-// internal/tui/models/secret_form.go
 package models
 
 import (
@@ -106,7 +105,6 @@ func NewSecretFormModel(secretType string, editing bool, existingData *model.Sec
 	}
 
 	if editing && existingData != nil {
-		m.loadExistingData(existingData)
 		m.SecretID = existingData.ID.String()
 	}
 
@@ -152,8 +150,38 @@ func (m *SecretFormModel) addField(label string, fieldType FieldType, required b
 	m.Fields = append(m.Fields, field)
 }
 
-func (m *SecretFormModel) loadExistingData(secret *model.Secret) {
-	// TODO: decrypt and fill form with stored values
+// SetFieldValues populates form fields from a key-value map.
+// Keys match those used in collectData (e.g. "username", "password", "url", etc.).
+func (m *SecretFormModel) SetFieldValues(data map[string]string) {
+	fieldKeyMap := map[string]string{
+		"Username":            "username",
+		"Password":            "password",
+		"URL":                 "url",
+		"Content":             "content",
+		"Card Number":         "card_number",
+		"Card Holder Name":    "card_holder_name",
+		"Expiry Date (MM/YY)": "expiry_date",
+		"CVV":                 "cvv",
+		"File Path":           "file_path",
+		"Notes":               "notes",
+		"Description":         "notes",
+	}
+
+	for i := range m.Fields {
+		dataKey, ok := fieldKeyMap[m.Fields[i].Label]
+		if !ok {
+			continue
+		}
+		value, exists := data[dataKey]
+		if !exists {
+			continue
+		}
+		if m.Fields[i].Type == FieldTypeText || m.Fields[i].Type == FieldTypePassword {
+			m.Fields[i].Input.SetValue(value)
+		} else if m.Fields[i].Type == FieldTypeTextArea {
+			m.Fields[i].TextArea.SetValue(value)
+		}
+	}
 }
 
 func (m SecretFormModel) Init() tea.Cmd {
@@ -196,6 +224,16 @@ func (m SecretFormModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			if m.CurrentField == 1+len(m.Fields) {
 				if m.validateForm() {
 					return m, m.saveSecret()
+				}
+			}
+			return m, nil
+		case "ctrl+p":
+			fieldIndex := m.CurrentField - 1
+			if fieldIndex >= 0 && fieldIndex < len(m.Fields) && m.Fields[fieldIndex].Type == FieldTypePassword {
+				if m.Fields[fieldIndex].Input.EchoMode == textinput.EchoPassword {
+					m.Fields[fieldIndex].Input.EchoMode = textinput.EchoNormal
+				} else {
+					m.Fields[fieldIndex].Input.EchoMode = textinput.EchoPassword
 				}
 			}
 			return m, nil
@@ -464,7 +502,7 @@ func (m SecretFormModel) View() string {
 	}
 	s.WriteString(fmt.Sprintf("%s %s\n\n", cursor, styles.RenderButton("SAVE", m.CurrentField == 1+len(m.Fields))))
 
-	s.WriteString(styles.FooterStyle.Render("[Ctrl+B] Add metadata field"))
+	s.WriteString(styles.FooterStyle.Render("[Ctrl+B] Add metadata field • [Ctrl+P] Toggle password visibility"))
 	s.WriteString("\n\n")
 
 	if m.ErrorMsg != "" {

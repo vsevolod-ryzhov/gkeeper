@@ -1,7 +1,7 @@
 package grpcserver
 
 import (
-	"gkeeper/api/proto"
+	pb "gkeeper/api/proto"
 	"gkeeper/internal/jwt"
 	"gkeeper/internal/storage"
 
@@ -9,7 +9,7 @@ import (
 )
 
 type GKeeperServer struct {
-	proto.UnimplementedGKeeperServer
+	pb.UnimplementedGKeeperServer
 	logger     *zap.Logger
 	storage    *storage.PostgresStorage
 	jwtManager *jwt.JWTManager

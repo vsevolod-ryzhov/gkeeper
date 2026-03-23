@@ -1,4 +1,3 @@
-// internal/tui/models/create.go
 package models
 
 import (

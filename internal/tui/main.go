@@ -1,6 +1,9 @@
 package tui
 
 import (
+	"encoding/json"
+
+	pb "gkeeper/api/proto"
 	"gkeeper/internal/grpcclient"
 	"gkeeper/internal/tui/models"
 
@@ -15,6 +18,7 @@ const (
 	RegisterView
 	DashboardView
 	CreateView
+	ListView
 )
 
 type MainModel struct {
@@ -24,6 +28,7 @@ type MainModel struct {
 	register  models.RegisterModel
 	dashboard models.DashboardModel
 	create    models.CreateModel
+	list      models.ListModel
 	client    *grpcclient.Client
 
 	authToken string
@@ -38,6 +43,7 @@ func NewMainModel(client *grpcclient.Client) MainModel {
 		register:  models.NewRegisterModel(client),
 		dashboard: models.NewDashboardModel(),
 		create:    models.NewCreateModel(client),
+		list:      models.NewListModel(client),
 		client:    client,
 	}
 }
@@ -54,6 +60,8 @@ func (m MainModel) Init() tea.Cmd {
 		return m.dashboard.Init()
 	case CreateView:
 		return m.create.Init()
+	case ListView:
+		return m.list.Init()
 	}
 
 	return nil
@@ -132,6 +140,11 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.state = CreateView
 				m.dashboard.Selected = ""
 				cmds = append(cmds, m.create.Init())
+			case "list":
+				m.state = ListView
+				m.dashboard.Selected = ""
+				m.list.AuthToken = m.authToken
+				cmds = append(cmds, m.list.Init())
 			case "logout":
 				m.state = MenuView
 				m.dashboard.Selected = ""
@@ -160,6 +173,27 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, m.dashboard.Init())
 			}
 		}
+
+	case ListView:
+		updatedList, listCmd := m.list.Update(msg)
+		m.list = updatedList.(models.ListModel)
+		cmds = append(cmds, listCmd)
+
+		if m.list.Back {
+			m.state = DashboardView
+			m.list.Back = false
+			cmds = append(cmds, m.dashboard.Init())
+		}
+
+		if m.list.Selected != nil {
+			selected := m.list.Selected
+			m.list.Selected = nil
+			m.create.AuthToken = m.authToken
+			m.create.ShowForm = true
+			m.create.FormModel = NewEditFormFromProto(selected, m.authToken, m.client)
+			m.state = CreateView
+			cmds = append(cmds, m.create.FormModel.Init())
+		}
 	}
 
 	return m, tea.Batch(cmds...)
@@ -177,7 +211,37 @@ func (m MainModel) View() string {
 		return m.dashboard.View()
 	case CreateView:
 		return m.create.View()
+	case ListView:
+		return m.list.View()
 	default:
 		return "Unknown view"
 	}
+}
+
+func NewEditFormFromProto(secret *pb.Secret, authToken string, client *grpcclient.Client) models.SecretFormModel {
+	form := models.NewSecretFormModel(secret.GetType(), true, nil, authToken, client)
+	form.SecretID = secret.GetId()
+	form.TitleInput.SetValue(secret.GetTitle())
+
+	crypto := client.GetCrypto()
+	if crypto != nil && len(secret.GetEncryptedData()) > 0 {
+		decrypted, err := crypto.Decrypt(string(secret.GetEncryptedData()))
+		if err == nil {
+			var data map[string]string
+			if json.Unmarshal(decrypted, &data) == nil {
+				form.SetFieldValues(data)
+			}
+		}
+	}
+
+	if secret.GetMetadata() != "" {
+		var meta map[string]string
+		if json.Unmarshal([]byte(secret.GetMetadata()), &meta) == nil {
+			for k, v := range meta {
+				form.Metadata[k] = v
+			}
+		}
+	}
+
+	return form
 }

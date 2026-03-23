@@ -57,6 +57,20 @@ func (c *Client) CreateSecret(ctx context.Context, token string, title string, s
 	return nil
 }
 
+func (c *Client) GetSecrets(ctx context.Context, token string) ([]*pb.Secret, error) {
+	ctxWithToken := c.createContextWithToken(ctx)
+
+	response, err := c.client.GetSecrets(ctxWithToken, pb.GetSecretsRequest_builder{
+		Token: proto.String(token),
+	}.Build())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response.GetSecrets(), nil
+}
+
 func (c *Client) prepareEncryptedDataMap(secretType string, data map[string]interface{}) (map[string]interface{}, error) {
 	switch secretType {
 	case model.SecretTypeCredentials:

@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"gkeeper/api/proto"
+	pb "gkeeper/api/proto"
 	"gkeeper/internal/storage"
 
 	"go.uber.org/zap"
@@ -14,8 +14,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (gs *GKeeperServer) Register(ctx context.Context, req *proto.RegisterRequest) (*proto.RegisterResponse, error) {
-	var response proto.RegisterResponse
+func (gs *GKeeperServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+	var response pb.RegisterResponse
 
 	hashedPassword, hashErr := hashPassword(req.GetPassword())
 	if hashErr != nil {
@@ -40,8 +40,8 @@ func (gs *GKeeperServer) Register(ctx context.Context, req *proto.RegisterReques
 	return &response, nil
 }
 
-func (gs *GKeeperServer) Login(ctx context.Context, req *proto.LoginRequest) (*proto.LoginResponse, error) {
-	var response proto.LoginResponse
+func (gs *GKeeperServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	var response pb.LoginResponse
 
 	user, err := gs.storage.GetUserByEmail(ctx, req.GetEmail())
 	if err != nil {
