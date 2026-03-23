@@ -11,5 +11,5 @@
 ## testing
 - go test ./... -coverprofile cover.out
 - go tool cover -html=cover.out
-- go test $(go list ./... | grep -v /api/proto) -coverprofile=coverage.out && go tool cover -func=coverage.out | grep total
-go test ./internal/storage/ -tags=integration -v
+- go test $(go list ./... | grep -v -E '/api/proto|/model$|/cmd/|/tui') -coverprofile=coverage.out && go tool cover -func=coverage.out | grep total
+- go test ./internal/storage/ -tags=integration -v
