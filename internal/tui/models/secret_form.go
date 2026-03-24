@@ -8,6 +8,8 @@ import (
 	"gkeeper/internal/tui/styles"
 	"strings"
 
+	"sort"
+
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -37,6 +39,9 @@ type SecretFormModel struct {
 	Metadata     map[string]string
 	CurrentField int
 	AddingMeta   bool
+	ManagingMeta bool
+	MetaCursor   int
+	EditingMeta  string // key being edited, empty for new entry
 	MetaKey      textinput.Model
 	MetaValue    textinput.Model
 	ErrorMsg     string
@@ -188,9 +193,23 @@ func (m SecretFormModel) Init() tea.Cmd {
 	return m.TitleInput.Focus()
 }
 
+// metaKeys returns sorted metadata keys for stable ordering.
+func (m *SecretFormModel) metaKeys() []string {
+	keys := make([]string, 0, len(m.Metadata))
+	for k := range m.Metadata {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
 func (m SecretFormModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	if m.AddingMeta {
 		return m.updateAddingMeta(message)
+	}
+
+	if m.ManagingMeta {
+		return m.updateManagingMeta(message)
 	}
 
 	switch msg := message.(type) {
@@ -239,8 +258,15 @@ func (m SecretFormModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case "ctrl+b":
 			m.AddingMeta = true
+			m.EditingMeta = ""
 			m.MetaKey.Focus()
 			m.MetaValue.Blur()
+			return m, nil
+		case "ctrl+d":
+			if len(m.Metadata) > 0 {
+				m.ManagingMeta = true
+				m.MetaCursor = 0
+			}
 			return m, nil
 		}
 	}
@@ -304,9 +330,13 @@ func (m SecretFormModel) updateAddingMeta(message tea.Msg) (tea.Model, tea.Cmd) 
 			key := strings.TrimSpace(m.MetaKey.Value())
 			value := strings.TrimSpace(m.MetaValue.Value())
 			if key != "" {
+				if m.EditingMeta != "" && m.EditingMeta != key {
+					delete(m.Metadata, m.EditingMeta)
+				}
 				m.Metadata[key] = value
 			}
 			m.AddingMeta = false
+			m.EditingMeta = ""
 			m.MetaKey.Reset()
 			m.MetaValue.Reset()
 			m.updateFocus()
@@ -329,6 +359,56 @@ func (m SecretFormModel) updateAddingMeta(message tea.Msg) (tea.Model, tea.Cmd) 
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
+}
+
+func (m SecretFormModel) updateManagingMeta(message tea.Msg) (tea.Model, tea.Cmd) {
+	keys := m.metaKeys()
+
+	switch msg := message.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "up":
+			if m.MetaCursor > 0 {
+				m.MetaCursor--
+			}
+			return m, nil
+		case "down":
+			if m.MetaCursor < len(keys)-1 {
+				m.MetaCursor++
+			}
+			return m, nil
+		case "d", "backspace":
+			if len(keys) > 0 {
+				delete(m.Metadata, keys[m.MetaCursor])
+				if len(m.Metadata) == 0 {
+					m.ManagingMeta = false
+				} else if m.MetaCursor >= len(m.Metadata) {
+					m.MetaCursor = len(m.Metadata) - 1
+				}
+			}
+			return m, nil
+		case "e", "enter":
+			if len(keys) > 0 {
+				key := keys[m.MetaCursor]
+				m.ManagingMeta = false
+				m.AddingMeta = true
+				m.EditingMeta = key
+				m.MetaKey.SetValue(key)
+				m.MetaValue.SetValue(m.Metadata[key])
+				m.MetaKey.Focus()
+				m.MetaValue.Blur()
+			}
+			return m, nil
+		case "esc":
+			m.ManagingMeta = false
+			m.updateFocus()
+			return m, nil
+		case "ctrl+c":
+			return m, tea.Quit
+		}
+	}
+
+	return m, nil
 }
 
 func (m *SecretFormModel) updateFocus() {
@@ -446,6 +526,10 @@ func (m SecretFormModel) View() string {
 		return m.viewAddMetadata()
 	}
 
+	if m.ManagingMeta {
+		return m.viewManageMetadata()
+	}
+
 	var s strings.Builder
 	title := "Create New Secret"
 	if m.Editing {
@@ -501,7 +585,11 @@ func (m SecretFormModel) View() string {
 	}
 	s.WriteString(fmt.Sprintf("%s %s\n\n", cursor, styles.RenderButton("SAVE", m.CurrentField == 1+len(m.Fields))))
 
-	s.WriteString(styles.FooterStyle.Render("[Ctrl+B] Add metadata field • [Ctrl+P] Toggle password visibility"))
+	metaHint := "[Ctrl+B] Add metadata"
+	if len(m.Metadata) > 0 {
+		metaHint += " • [Ctrl+D] Manage metadata"
+	}
+	s.WriteString(styles.FooterStyle.Render(metaHint + " • [Ctrl+P] Toggle password visibility"))
 	s.WriteString("\n\n")
 
 	if m.ErrorMsg != "" {
@@ -511,7 +599,7 @@ func (m SecretFormModel) View() string {
 
 	s.WriteString(styles.DividerStyle.Render(strings.Repeat("─", 50)))
 	s.WriteString("\n")
-	s.WriteString(styles.FooterStyle.Render("↑/↓: navigate • Enter: save • Esc: back • Ctrl+B: add metadata • Ctrl+C: quit"))
+	s.WriteString(styles.FooterStyle.Render("↑/↓: navigate • Enter: save • Esc: back • Ctrl+C: quit"))
 
 	return s.String()
 }
@@ -519,7 +607,11 @@ func (m SecretFormModel) View() string {
 func (m SecretFormModel) viewAddMetadata() string {
 	var s strings.Builder
 
-	s.WriteString(styles.RenderTitle("Add Metadata Field"))
+	title := "Add Metadata Field"
+	if m.EditingMeta != "" {
+		title = "Edit Metadata Field"
+	}
+	s.WriteString(styles.RenderTitle(title))
 	s.WriteString("\n\n")
 
 	s.WriteString(styles.NormalStyle.Render("Key:"))
@@ -533,6 +625,29 @@ func (m SecretFormModel) viewAddMetadata() string {
 	s.WriteString("\n\n")
 
 	s.WriteString(styles.FooterStyle.Render("Enter to save, Esc to cancel"))
+
+	return s.String()
+}
+
+func (m SecretFormModel) viewManageMetadata() string {
+	var s strings.Builder
+
+	s.WriteString(styles.RenderTitle("Manage Metadata"))
+	s.WriteString("\n\n")
+
+	keys := m.metaKeys()
+	for i, key := range keys {
+		cursor := " "
+		if i == m.MetaCursor {
+			cursor = ">"
+		}
+		s.WriteString(fmt.Sprintf("%s %s: %s\n", cursor, key, m.Metadata[key]))
+	}
+
+	s.WriteString("\n")
+	s.WriteString(styles.DividerStyle.Render(strings.Repeat("─", 40)))
+	s.WriteString("\n")
+	s.WriteString(styles.FooterStyle.Render("↑/↓: navigate • e/Enter: edit • d/Backspace: delete • Esc: back"))
 
 	return s.String()
 }

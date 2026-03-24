@@ -5,7 +5,7 @@
 ### server
 [+] user registration, authentication, and authorization;
 [+-] storage of private data;
-[?] data synchronization between multiple authorized clients of a single owner;
+[+] data synchronization between multiple authorized clients of a single owner;
 [+] transfer of private data to the owner upon request.
 
 ### client
