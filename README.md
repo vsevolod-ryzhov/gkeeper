@@ -1,5 +1,10 @@
 # Password storage app
 
+## FOR REVIEWER :octocat:
+Project is still not fully complete
+At least I have to add more tests everywhere
+Most of major functions seems working
+
 ## TODO
 
 ### server
