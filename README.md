@@ -42,3 +42,4 @@ Removing of secrets is not implemented now
 - go tool cover -html=cover.out
 - go test $(go list ./... | grep -v -E '/api/proto|/model$|/cmd/|/tui') -coverprofile=coverage.out && go tool cover -func=coverage.out | grep total
 - go test ./internal/storage/ -tags=integration -v
+- 
