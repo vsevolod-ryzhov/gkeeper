@@ -1,33 +1,30 @@
 # Password storage app
 
 ## FOR REVIEWER :octocat:
-Project is still not fully complete
-At least I have to add more tests everywhere
-Most of major functions seems working
+Project is still not fully complete  
+At least I have to add more tests everywhere  
+Most of major functions seems working  
 
 ## TODO
-
 ### server
-[+] user registration, authentication, and authorization;
-[+-] storage of private data;
-[+] data synchronization between multiple authorized clients of a single owner;
+[+] user registration, authentication, and authorization;  
+[+-] storage of private data;  
+[+] data synchronization between multiple authorized clients of a single owner;  
 [+] transfer of private data to the owner upon request.
-
 ### client
-[+] user authentication and authorization on the remote server;
+[+] user authentication and authorization on the remote server;  
 [+] access to private data upon request.
-
 ### general
-[+-] creation, editing, and deletion of data on the server or client side;
-[+] new user registration form;
-[+] selection of storage location and data storage format;
-[+] ensuring security of data transfer and storage;
-[+] client-server interaction protocol;
+[+-] creation, editing, and deletion of data on the server or client side;  
+[+] new user registration form;  
+[+] selection of storage location and data storage format;  
+[+] ensuring security of data transfer and storage;  
+[+] client-server interaction protocol;  
 [+] user authentication and information access authorization mechanisms.
 
 ### other
-[+] TUI
-[-] Tests >= 70%
+[+] TUI;  
+[-] Tests >= 70%;
 
 
 ## Useful commands
