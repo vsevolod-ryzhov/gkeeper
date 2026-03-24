@@ -19,6 +19,7 @@ const (
 	DashboardView
 	CreateView
 	ListView
+	DownloadView
 )
 
 type MainModel struct {
@@ -29,6 +30,7 @@ type MainModel struct {
 	dashboard models.DashboardModel
 	create    models.CreateModel
 	list      models.ListModel
+	download  models.DownloadModel
 	client    *grpcclient.Client
 
 	authToken string
@@ -62,6 +64,8 @@ func (m MainModel) Init() tea.Cmd {
 		return m.create.Init()
 	case ListView:
 		return m.list.Init()
+	case DownloadView:
+		return m.download.Init()
 	}
 
 	return nil
@@ -192,11 +196,30 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.list.Selected != nil {
 			selected := m.list.Selected
 			m.list.Selected = nil
-			m.create.AuthToken = m.authToken
-			m.create.ShowForm = true
-			m.create.FormModel = NewEditFormFromProto(selected, m.authToken, m.client)
-			m.state = CreateView
-			cmds = append(cmds, m.create.FormModel.Init())
+
+			if selected.GetType() == "binary" {
+				m.download = models.NewDownloadModel(selected, m.client)
+				m.state = DownloadView
+				cmds = append(cmds, m.download.Init())
+			} else {
+				m.create.AuthToken = m.authToken
+				m.create.ShowForm = true
+				m.create.FormModel = NewEditFormFromProto(selected, m.authToken, m.client)
+				m.state = CreateView
+				cmds = append(cmds, m.create.FormModel.Init())
+			}
+		}
+
+	case DownloadView:
+		updatedDownload, downloadCmd := m.download.Update(msg)
+		m.download = updatedDownload.(models.DownloadModel)
+		cmds = append(cmds, downloadCmd)
+
+		if m.download.Back {
+			m.download.Back = false
+			m.state = ListView
+			m.list.AuthToken = m.authToken
+			cmds = append(cmds, m.list.Init())
 		}
 	}
 
@@ -217,6 +240,8 @@ func (m MainModel) View() string {
 		return m.create.View()
 	case ListView:
 		return m.list.View()
+	case DownloadView:
+		return m.download.View()
 	default:
 		return "Unknown view"
 	}

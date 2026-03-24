@@ -4,11 +4,13 @@
 Project is still not fully complete  
 At least I have to add more tests everywhere  
 Most of major functions seems working  
+Binary data is stored now as encrypted string in database, not the best approach for large files. I'll try to find another solution for this
+Removing of secrets is not implemented now
 
 ## TODO
 ### server
 [+] user registration, authentication, and authorization;  
-[+-] storage of private data;  
+[+?] storage of private data;  
 [+] data synchronization between multiple authorized clients of a single owner;  
 [+] transfer of private data to the owner upon request.
 ### client
