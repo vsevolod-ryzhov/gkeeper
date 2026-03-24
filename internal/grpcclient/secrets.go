@@ -11,6 +11,55 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+func (c *Client) UpdateSecret(ctx context.Context, token string, id string, title string, secretType string, data map[string]interface{}) error {
+	encryptedDataMap, err := c.prepareEncryptedDataMap(secretType, data)
+	if err != nil {
+		return err
+	}
+
+	plaintextJSON, err := json.Marshal(encryptedDataMap)
+	if err != nil {
+		return fmt.Errorf("failed to marshal data: %w", err)
+	}
+
+	encryptedData, err := c.crypto.Encrypt(plaintextJSON)
+	if err != nil {
+		return fmt.Errorf("failed to encrypt data: %w", err)
+	}
+
+	metadataJSON, err := c.prepareMetadata(data)
+	if err != nil {
+		return err
+	}
+
+	filePath := ""
+	if secretType == model.SecretTypeBinary {
+		if path, ok := data["file_path"].(string); ok {
+			filePath = path
+		}
+	}
+
+	ctxWithToken := c.createContextWithToken(ctx)
+
+	response, reqErr := c.client.UpdateSecret(ctxWithToken, pb.UpdateSecretRequest_builder{
+		Token:         proto.String(token),
+		Id:            proto.String(id),
+		Title:         proto.String(title),
+		Type:          proto.String(secretType),
+		EncryptedData: []byte(encryptedData),
+		Metadata:      proto.String(metadataJSON),
+		FilePath:      proto.String(filePath),
+	}.Build())
+
+	if reqErr != nil {
+		return reqErr
+	}
+
+	c.logger.Debug("UpdateSecret response", zap.String("response", response.String()))
+
+	return nil
+}
+
 func (c *Client) CreateSecret(ctx context.Context, token string, title string, secretType string, data map[string]interface{}) error {
 	encryptedDataMap, err := c.prepareEncryptedDataMap(secretType, data)
 	if err != nil {

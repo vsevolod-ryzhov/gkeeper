@@ -165,13 +165,17 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.create = updatedCreate.(models.CreateModel)
 		cmds = append(cmds, createCmd)
 
-		if m.create.Selected != "" {
-			switch m.create.Selected {
-			case "back":
-				m.state = DashboardView
-				m.create.Selected = ""
-				cmds = append(cmds, m.dashboard.Init())
-			}
+		if m.create.EditComplete {
+			m.create.EditComplete = false
+			m.state = ListView
+			m.list.AuthToken = m.authToken
+			cmds = append(cmds, m.list.Init())
+		}
+
+		if m.create.Back {
+			m.state = DashboardView
+			m.create.Back = false
+			cmds = append(cmds, m.dashboard.Init())
 		}
 
 	case ListView:

@@ -387,8 +387,7 @@ func (m *SecretFormModel) saveSecret() tea.Cmd {
 
 		var err error
 		if m.Editing {
-			fmt.Println(secretData)
-			//err = m.client.UpdateSecret(ctx, m.AuthToken, m.SecretID, secretData)
+			err = m.client.UpdateSecret(ctx, m.AuthToken, m.SecretID, m.TitleInput.Value(), m.SecretType, secretData)
 		} else {
 			err = m.client.CreateSecret(ctx, m.AuthToken, m.TitleInput.Value(), m.SecretType, secretData)
 		}

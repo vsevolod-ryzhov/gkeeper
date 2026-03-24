@@ -10,22 +10,25 @@ import (
 )
 
 type CreateModel struct {
-	choices   []string
-	cursor    int
-	Selected  string
-	ShowForm  bool
-	FormModel SecretFormModel
-	AuthToken string
-	client    *grpcclient.Client
+	choices      []string
+	cursor       int
+	Selected     string
+	ShowForm     bool
+	FormModel    SecretFormModel
+	AuthToken    string
+	EditComplete bool
+	Back         bool
+	client       *grpcclient.Client
 }
 
 func NewCreateModel(client *grpcclient.Client) CreateModel {
 	return CreateModel{
-		choices:   []string{model.SecretTypeCredentials, model.SecretTypeText, model.SecretTypeCard, model.SecretTypeBinary, "back"},
+		choices:   []string{model.SecretTypeCredentials, model.SecretTypeText, model.SecretTypeCard, model.SecretTypeBinary},
 		cursor:    0,
 		Selected:  "",
 		ShowForm:  false,
 		AuthToken: "",
+		Back:      false,
 		client:    client,
 	}
 }
@@ -42,6 +45,9 @@ func (m CreateModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		if saveMsg, ok := message.(SaveSecretMsg); ok {
 			if saveMsg.Success {
 				m.ShowForm = false
+				if m.FormModel.Editing {
+					m.EditComplete = true
+				}
 				m.Selected = ""
 				return m, nil
 			}
@@ -69,6 +75,9 @@ func (m CreateModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c":
 			return m, tea.Quit
+		case "esc":
+			m.Back = true
+			return m, nil
 		case "up":
 			if m.cursor > 0 {
 				m.cursor--
@@ -79,10 +88,6 @@ func (m CreateModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "enter":
 			m.Selected = m.choices[m.cursor]
-			if m.Selected == "back" {
-				return m, nil
-			}
-
 			m.FormModel = NewSecretFormModel(m.Selected, false, nil, m.AuthToken, m.client)
 			m.ShowForm = true
 			return m, m.FormModel.Init()
@@ -108,7 +113,7 @@ func (m CreateModel) View() string {
 	s.WriteString("\n")
 	s.WriteString(styles.DividerStyle.Render(strings.Repeat("─", 30)))
 	s.WriteString("\n")
-	s.WriteString(styles.FooterStyle.Render("↑ up • ↓ down • Enter select • Ctrl+C quit"))
+	s.WriteString(styles.FooterStyle.Render("↑ up • ↓ down • Enter select • Esc: back • Ctrl+C: quit"))
 
 	return s.String()
 }

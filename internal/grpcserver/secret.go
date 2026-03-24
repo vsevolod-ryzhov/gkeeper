@@ -40,9 +40,20 @@ func (gs *GKeeperServer) CreateSecret(ctx context.Context, req *pb.CreateSecretR
 }
 
 func (gs *GKeeperServer) UpdateSecret(ctx context.Context, req *pb.UpdateSecretRequest) (*pb.UpdateSecretResponse, error) {
-	var response pb.UpdateSecretResponse
+	userID, ok := ctx.Value("user_id").(uuid.UUID)
+	if !ok || userID == uuid.Nil {
+		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+	}
 
-	return &response, nil
+	secret, err := gs.storage.UpdateSecret(ctx, userID.String(), req.GetId(), req.GetTitle(), string(req.GetEncryptedData()), req.GetMetadata(), req.GetFilePath())
+	if err != nil {
+		gs.logger.Error("failed to update secret", zap.Error(err))
+		return nil, status.Errorf(codes.Internal, "failed to update secret")
+	}
+
+	return pb.UpdateSecretResponse_builder{
+		UpdatedAt: proto.String(secret.UpdatedAt.Format("2006-01-02T15:04:05Z07:00")),
+	}.Build(), nil
 }
 
 func (gs *GKeeperServer) DeleteSecret(ctx context.Context, req *pb.DeleteSecretRequest) (*pb.DeleteSecretResponse, error) {
