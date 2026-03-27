@@ -116,8 +116,8 @@ func TestGetUserByEmail_Success(t *testing.T) {
 
 	userID := uuid.New()
 	now := time.Now()
-	rows := sqlmock.NewRows([]string{"id", "email", "password_hash", "created_at"}).
-		AddRow(userID, "test@example.com", "hashed_pw", now)
+	rows := sqlmock.NewRows([]string{"id", "email", "password_hash", "salt", "created_at"}).
+		AddRow(userID, "test@example.com", "hashed_pw", "salt123", now)
 
 	mock.ExpectQuery(`SELECT (.+) FROM users`).
 		WithArgs("test@example.com").

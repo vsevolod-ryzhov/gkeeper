@@ -38,13 +38,13 @@ func (s *PostgresStorage) CreateUser(ctx context.Context, email string, password
 func (s *PostgresStorage) GetUserByEmail(ctx context.Context, email string) (*model.UserRecord, error) {
 	var user model.UserRecord
 
-	err := (sq.Select("id", "email", "password_hash", "created_at").
+	err := (sq.Select("id", "email", "password_hash", "salt", "created_at").
 		From("users").
 		Where(sq.Eq{"email": email}).
 		RunWith(s.db).
 		PlaceholderFormat(sq.Dollar).
 		QueryRowContext(ctx)).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.CreatedAt)
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.Salt, &user.CreatedAt)
 
 	if err != nil {
 		return nil, ErrUserNotFound
