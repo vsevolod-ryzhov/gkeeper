@@ -44,7 +44,8 @@ func (s *Server) Start(storage *storage.PostgresStorage) error {
 
 	tlsCreds, err := generateTLSCreds(s.config.CertFile, s.config.KeyFile)
 	if err != nil {
-		s.logger.Fatal("failed to generate tls creds: %v", zap.Error(err))
+		s.logger.Error("failed to generate tls creds", zap.Error(err))
+		return err
 	}
 
 	jwtManager := jwt.NewJWTManager(config.Options.JWTSecretKey, 24*time.Hour)
