@@ -21,6 +21,7 @@ type Storage interface {
 	GetUserByEmail(ctx context.Context, email string) (*model.UserRecord, error)
 	CreateSecret(ctx context.Context, userID string, title string, secretType string, encryptedData string, metadata string, filePath string) (*model.Secret, error)
 	UpdateSecret(ctx context.Context, userID string, secretID string, title string, encryptedData string, metadata string, filePath string) (*model.Secret, error)
+	DeleteSecret(ctx context.Context, userID string, secretID string) error
 	GetSecretsByUserID(ctx context.Context, userID string) ([]model.Secret, error)
 	GetSecretByID(ctx context.Context, userID string, secretID string) (*model.Secret, error)
 }

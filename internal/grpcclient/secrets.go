@@ -146,6 +146,21 @@ func (c *Client) CreateSecret(ctx context.Context, title string, secretType stri
 	return nil
 }
 
+func (c *Client) DeleteSecret(ctx context.Context, id string) error {
+	ctxWithToken := c.createContextWithToken(ctx)
+
+	_, err := c.client.DeleteSecret(ctxWithToken, pb.DeleteSecretRequest_builder{
+		Id: &id,
+	}.Build())
+
+	if err != nil {
+		return err
+	}
+
+	c.logger.Info("Secret deleted successfully", zap.String("id", id))
+	return nil
+}
+
 func (c *Client) GetSecrets(ctx context.Context) ([]*pb.Secret, error) {
 	ctxWithToken := c.createContextWithToken(ctx)
 

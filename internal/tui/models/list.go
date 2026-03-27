@@ -17,6 +17,10 @@ type SecretsLoadedMsg struct {
 	Error   error
 }
 
+type SecretDeletedMsg struct {
+	Error error
+}
+
 type ListModel struct {
 	secrets   []*pb.Secret
 	cursor    int
@@ -62,6 +66,14 @@ func (m ListModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		m.cursor = 0
 		return m, nil
 
+	case SecretDeletedMsg:
+		m.Loading = false
+		if msg.Error != nil {
+			m.ErrorMsg = msg.Error.Error()
+			return m, nil
+		}
+		return m, m.loadSecrets()
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
@@ -82,6 +94,15 @@ func (m ListModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 				m.Selected = m.secrets[m.cursor]
 			}
 			return m, nil
+		case "d":
+			if len(m.secrets) > 0 {
+				secret := m.secrets[m.cursor]
+				m.Loading = true
+				return m, func() tea.Msg {
+					err := m.client.DeleteSecret(context.Background(), secret.GetId())
+					return SecretDeletedMsg{Error: err}
+				}
+			}
 		}
 	}
 	return m, nil
@@ -120,7 +141,7 @@ func (m ListModel) View() string {
 	s.WriteString("\n")
 	s.WriteString(styles.DividerStyle.Render(strings.Repeat("─", 40)))
 	s.WriteString("\n")
-	s.WriteString(styles.FooterStyle.Render("↑/↓: navigate • Enter: edit • Esc: back • Ctrl+C: quit"))
+	s.WriteString(styles.FooterStyle.Render("↑/↓: navigate • Enter: edit • d: delete • Esc: back • Ctrl+C: quit"))
 
 	return s.String()
 }

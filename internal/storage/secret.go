@@ -53,6 +53,30 @@ func (s *PostgresStorage) UpdateSecret(ctx context.Context, userID string, secre
 	return &secret, nil
 }
 
+func (s *PostgresStorage) DeleteSecret(ctx context.Context, userID string, secretID string) error {
+	result, err := sq.Update("secrets").
+		Set("deleted_at", sq.Expr("NOW()")).
+		Where(sq.Eq{"id": secretID, "user_id": userID, "deleted_at": nil}).
+		PlaceholderFormat(sq.Dollar).
+		RunWith(s.db).
+		ExecContext(ctx)
+
+	if err != nil {
+		return fmt.Errorf("delete secret: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("delete secret: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return ErrSecretNotFound
+	}
+
+	return nil
+}
+
 func (s *PostgresStorage) GetSecretsByUserID(ctx context.Context, userID string) ([]model.Secret, error) {
 	rows, err := sq.Select("id", "user_id", "title", "type", "encrypted_data", "metadata", "file_path", "created_at", "updated_at").
 		From("secrets").
