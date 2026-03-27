@@ -34,7 +34,7 @@ func NewServer(config *ServerConfig, logger *zap.Logger) *Server {
 	}
 }
 
-func (s *Server) Start(storage *storage.PostgresStorage) error {
+func (s *Server) Start(storage storage.Storage) error {
 	listen, err := net.Listen("tcp", s.config.AppPort)
 	if err != nil {
 		s.logger.Error("failed to listen", zap.Error(err))

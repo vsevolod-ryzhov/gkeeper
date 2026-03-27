@@ -11,11 +11,11 @@ import (
 type GKeeperServer struct {
 	pb.UnimplementedGKeeperServer
 	logger     *zap.Logger
-	storage    *storage.PostgresStorage
+	storage    storage.Storage
 	jwtManager *jwt.JWTManager
 }
 
-func NewGKeeperServer(logger *zap.Logger, storage *storage.PostgresStorage, jwtManager *jwt.JWTManager) *GKeeperServer {
+func NewGKeeperServer(logger *zap.Logger, storage storage.Storage, jwtManager *jwt.JWTManager) *GKeeperServer {
 	return &GKeeperServer{
 		logger:     logger,
 		storage:    storage,
