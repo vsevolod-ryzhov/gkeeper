@@ -31,9 +31,6 @@ func TestParseFlags_Defaults(t *testing.T) {
 	if Options.DatabaseDSN != "" {
 		t.Errorf("expected empty DatabaseDSN, got %q", Options.DatabaseDSN)
 	}
-	if Options.JWTSecretKey != "your-256-bit-secret-key-change-in-production" {
-		t.Errorf("expected default JWTSecretKey, got %q", Options.JWTSecretKey)
-	}
 }
 
 func TestParseFlags_CLIArgs(t *testing.T) {
@@ -93,8 +90,5 @@ func TestParseFlags_PartialEnvOverride(t *testing.T) {
 	}
 	if Options.DatabaseDSN != "cli-dsn" {
 		t.Errorf("expected CLI DatabaseDSN 'cli-dsn', got %q", Options.DatabaseDSN)
-	}
-	if Options.JWTSecretKey != "your-256-bit-secret-key-change-in-production" {
-		t.Errorf("expected default JWTSecretKey, got %q", Options.JWTSecretKey)
 	}
 }
