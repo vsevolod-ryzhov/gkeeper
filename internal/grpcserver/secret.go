@@ -13,7 +13,7 @@ import (
 )
 
 func (gs *GKeeperServer) CreateSecret(ctx context.Context, req *pb.CreateSecretRequest) (*pb.CreateSecretResponse, error) {
-	userID, ok := ctx.Value("user_id").(uuid.UUID)
+	userID, ok := ctx.Value(ctxKeyUserID).(uuid.UUID)
 	if !ok || userID == uuid.Nil {
 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
 	}
@@ -41,7 +41,7 @@ func (gs *GKeeperServer) CreateSecret(ctx context.Context, req *pb.CreateSecretR
 }
 
 func (gs *GKeeperServer) UpdateSecret(ctx context.Context, req *pb.UpdateSecretRequest) (*pb.UpdateSecretResponse, error) {
-	userID, ok := ctx.Value("user_id").(uuid.UUID)
+	userID, ok := ctx.Value(ctxKeyUserID).(uuid.UUID)
 	if !ok || userID == uuid.Nil {
 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
 	}
@@ -64,7 +64,7 @@ func (gs *GKeeperServer) DeleteSecret(ctx context.Context, req *pb.DeleteSecretR
 }
 
 func (gs *GKeeperServer) GetSecrets(ctx context.Context, req *pb.GetSecretsRequest) (*pb.GetSecretsResponse, error) {
-	userID, ok := ctx.Value("user_id").(uuid.UUID)
+	userID, ok := ctx.Value(ctxKeyUserID).(uuid.UUID)
 	if !ok || userID == uuid.Nil {
 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
 	}
@@ -108,7 +108,7 @@ func (gs *GKeeperServer) GetSecrets(ctx context.Context, req *pb.GetSecretsReque
 }
 
 func (gs *GKeeperServer) GetSecret(ctx context.Context, req *pb.GetSecretRequest) (*pb.GetSecretResponse, error) {
-	userID, ok := ctx.Value("user_id").(uuid.UUID)
+	userID, ok := ctx.Value(ctxKeyUserID).(uuid.UUID)
 	if !ok || userID == uuid.Nil {
 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
 	}

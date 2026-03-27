@@ -2,6 +2,7 @@ package grpcserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"gkeeper/internal/jwt"
 	"strings"
@@ -10,6 +11,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+)
+
+type contextKey string
+
+const (
+	ctxKeyUserID contextKey = "user_id"
+	ctxKeyEmail  contextKey = "email"
 )
 
 type AuthInterceptor struct {
@@ -38,8 +46,8 @@ func (interceptor *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 			return nil, err
 		}
 
-		ctx = context.WithValue(ctx, "user_id", claims.UserID)
-		ctx = context.WithValue(ctx, "email", claims.Email)
+		ctx = context.WithValue(ctx, ctxKeyUserID, claims.UserID)
+		ctx = context.WithValue(ctx, ctxKeyEmail, claims.Email)
 
 		return handler(ctx, req)
 	}
@@ -74,12 +82,10 @@ func (interceptor *AuthInterceptor) authorize(ctx context.Context) (*jwt.Claims,
 
 	claims, err := interceptor.jwtManager.VerifyToken(parts[1])
 	if err != nil {
-		switch err {
-		case jwt.ErrExpiredToken:
-			return nil, status.Errorf(codes.Unauthenticated, "token expired")
-		default:
-			return nil, status.Errorf(codes.Unauthenticated, "invalid token")
+		if errors.Is(err, jwt.ErrExpiredToken) {
+			return nil, status.Errorf(codes.Unauthenticated, "token is expired")
 		}
+		return nil, status.Errorf(codes.Unauthenticated, "invalid token")
 	}
 
 	return claims, nil
