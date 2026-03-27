@@ -16,7 +16,9 @@ import (
 )
 
 type ServerConfig struct {
-	AppPort string
+	AppPort  string
+	CertFile string
+	KeyFile  string
 }
 
 type Server struct {
@@ -40,7 +42,7 @@ func (s *Server) Start(storage *storage.PostgresStorage) error {
 		return fmt.Errorf("gRPC listener init error: %w", err)
 	}
 
-	tlsCreds, err := generateTLSCreds()
+	tlsCreds, err := generateTLSCreds(s.config.CertFile, s.config.KeyFile)
 	if err != nil {
 		s.logger.Fatal("failed to generate tls creds: %v", zap.Error(err))
 	}
@@ -72,9 +74,6 @@ func (s *Server) Stop() {
 	}
 }
 
-func generateTLSCreds() (credentials.TransportCredentials, error) {
-	certFile := "crt/server.crt"
-	keyFile := "crt/server.key"
-
+func generateTLSCreds(certFile, keyFile string) (credentials.TransportCredentials, error) {
 	return credentials.NewServerTLSFromFile(certFile, keyFile)
 }

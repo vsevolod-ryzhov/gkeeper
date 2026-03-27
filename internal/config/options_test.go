@@ -10,6 +10,8 @@ func resetFlags() {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	Options = struct {
 		AppPort      string `default:"localhost:8080"`
+		CertFile     string
+		KeyFile      string
 		DatabaseDSN  string
 		JWTSecretKey string
 	}{}

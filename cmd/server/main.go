@@ -26,7 +26,9 @@ func Run(ctx context.Context) error {
 
 	grpcServer := grpcserver.NewServer(
 		&grpcserver.ServerConfig{
-			AppPort: config.Options.AppPort,
+			AppPort:  config.Options.AppPort,
+			CertFile: config.Options.CertFile,
+			KeyFile:  config.Options.KeyFile,
 		},
 		logger,
 	)
