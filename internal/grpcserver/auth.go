@@ -10,7 +10,9 @@ import (
 
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -61,7 +63,12 @@ func (gs *GKeeperServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.L
 		return &response, status.Errorf(codes.Internal, "failed to generate token")
 	}
 
-	response.SetToken(token)
+	header := metadata.Pairs("authorization", "Bearer "+token)
+	if err := grpc.SendHeader(ctx, header); err != nil {
+		gs.logger.Error("failed to send token header", zap.Error(err))
+		return &response, status.Errorf(codes.Internal, "failed to send token")
+	}
+
 	response.SetSalt(user.Salt)
 	response.SetEmail(user.Email)
 	response.SetUserId(user.ID.String())

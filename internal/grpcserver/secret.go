@@ -3,6 +3,7 @@ package grpcserver
 import (
 	"context"
 	pb "gkeeper/api/proto"
+	"gkeeper/internal/model"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -21,7 +22,7 @@ func (gs *GKeeperServer) CreateSecret(ctx context.Context, req *pb.CreateSecretR
 		ctx,
 		userID.String(),
 		req.GetTitle(),
-		req.GetType(),
+		model.ProtoToSecretType(req.GetType()),
 		string(req.GetEncryptedData()),
 		req.GetMetadata(),
 		req.GetFilePath(),
@@ -86,11 +87,12 @@ func (gs *GKeeperServer) GetSecrets(ctx context.Context, req *pb.GetSecretsReque
 			filePath = s.FilePath
 		}
 
+		secretType := model.SecretTypeToProto(s.Type)
 		pbSecrets = append(pbSecrets, pb.Secret_builder{
 			Id:            proto.String(s.ID.String()),
 			UserId:        proto.String(s.UserID.String()),
 			Title:         proto.String(s.Title),
-			Type:          proto.String(s.Type),
+			Type:          &secretType,
 			EncryptedData: []byte(s.EncryptedData),
 			Metadata:      proto.String(string(s.Metadata)),
 			FilePath:      filePath,
@@ -127,12 +129,13 @@ func (gs *GKeeperServer) GetSecret(ctx context.Context, req *pb.GetSecretRequest
 		filePath = secret.FilePath
 	}
 
+	secretType := model.SecretTypeToProto(secret.Type)
 	return pb.GetSecretResponse_builder{
 		Secret: pb.Secret_builder{
 			Id:            proto.String(secret.ID.String()),
 			UserId:        proto.String(secret.UserID.String()),
 			Title:         proto.String(secret.Title),
-			Type:          proto.String(secret.Type),
+			Type:          &secretType,
 			EncryptedData: []byte(secret.EncryptedData),
 			Metadata:      proto.String(string(secret.Metadata)),
 			FilePath:      filePath,

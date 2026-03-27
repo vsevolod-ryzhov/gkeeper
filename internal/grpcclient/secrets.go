@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/proto"
 )
 
 // encryptSecretData handles encryption for all secret types.
@@ -76,7 +75,7 @@ func (c *Client) DecryptBinarySecret(encryptedData []byte, savePath string) erro
 	return nil
 }
 
-func (c *Client) UpdateSecret(ctx context.Context, token string, id string, title string, secretType string, data map[string]interface{}) error {
+func (c *Client) UpdateSecret(ctx context.Context, id string, title string, secretType string, data map[string]interface{}) error {
 	encryptedData, binaryFileName, err := c.encryptSecretData(secretType, data)
 	if err != nil {
 		return err
@@ -96,14 +95,14 @@ func (c *Client) UpdateSecret(ctx context.Context, token string, id string, titl
 
 	ctxWithToken := c.createContextWithToken(ctx)
 
+	protoType := model.SecretTypeToProto(secretType)
 	response, reqErr := c.client.UpdateSecret(ctxWithToken, pb.UpdateSecretRequest_builder{
-		Token:         proto.String(token),
-		Id:            proto.String(id),
-		Title:         proto.String(title),
-		Type:          proto.String(secretType),
+		Id:            &id,
+		Title:         &title,
+		Type:          &protoType,
 		EncryptedData: []byte(encryptedData),
-		Metadata:      proto.String(metadataJSON),
-		FilePath:      proto.String(filePath),
+		Metadata:      &metadataJSON,
+		FilePath:      &filePath,
 	}.Build())
 
 	if reqErr != nil {
@@ -115,7 +114,7 @@ func (c *Client) UpdateSecret(ctx context.Context, token string, id string, titl
 	return nil
 }
 
-func (c *Client) CreateSecret(ctx context.Context, token string, title string, secretType string, data map[string]interface{}) error {
+func (c *Client) CreateSecret(ctx context.Context, title string, secretType string, data map[string]interface{}) error {
 	encryptedData, binaryFileName, err := c.encryptSecretData(secretType, data)
 	if err != nil {
 		return err
@@ -130,13 +129,13 @@ func (c *Client) CreateSecret(ctx context.Context, token string, title string, s
 
 	ctxWithToken := c.createContextWithToken(ctx)
 
+	protoType := model.SecretTypeToProto(secretType)
 	response, reqErr := c.client.CreateSecret(ctxWithToken, pb.CreateSecretRequest_builder{
-		Token:         proto.String(token),
-		Title:         proto.String(title),
-		Type:          proto.String(secretType),
+		Title:         &title,
+		Type:          &protoType,
 		EncryptedData: []byte(encryptedData),
-		Metadata:      proto.String(metadataJSON),
-		FilePath:      proto.String(filePath),
+		Metadata:      &metadataJSON,
+		FilePath:      &filePath,
 	}.Build())
 
 	if reqErr != nil {
@@ -147,12 +146,10 @@ func (c *Client) CreateSecret(ctx context.Context, token string, title string, s
 	return nil
 }
 
-func (c *Client) GetSecrets(ctx context.Context, token string) ([]*pb.Secret, error) {
+func (c *Client) GetSecrets(ctx context.Context) ([]*pb.Secret, error) {
 	ctxWithToken := c.createContextWithToken(ctx)
 
-	response, err := c.client.GetSecrets(ctxWithToken, pb.GetSecretsRequest_builder{
-		Token: proto.String(token),
-	}.Build())
+	response, err := c.client.GetSecrets(ctxWithToken, pb.GetSecretsRequest_builder{}.Build())
 
 	if err != nil {
 		return nil, err

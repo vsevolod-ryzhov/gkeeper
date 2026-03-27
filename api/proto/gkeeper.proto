@@ -29,16 +29,23 @@ message LoginRequest {
 }
 
 message LoginResponse {
-  string token = 1;
-  string salt = 2;
-  string user_id = 3;
-  string email = 4;
+  string salt = 1;
+  string user_id = 2;
+  string email = 3;
+}
+
+enum SecretType {
+  SECRET_TYPE_UNSPECIFIED = 0;
+  SECRET_TYPE_CREDENTIALS = 1;
+  SECRET_TYPE_TEXT = 2;
+  SECRET_TYPE_CARD = 3;
+  SECRET_TYPE_BINARY = 4;
 }
 
 message CreateSecretRequest {
   string token = 1;
   string title = 2;
-  string type = 3;
+  SecretType type = 3;
   bytes encrypted_data = 4;
   string metadata = 5;
   string file_path = 6;
@@ -53,7 +60,7 @@ message UpdateSecretRequest {
   string token = 1;
   string id = 2;
   string title = 3;
-  string type = 4;
+  SecretType type = 4;
   bytes encrypted_data = 5;
   string metadata = 6;
   string file_path = 7;
@@ -94,7 +101,7 @@ message Secret {
   string id = 1;
   string user_id = 2;
   string title = 3;
-  string type = 4;
+  SecretType type = 4;
   bytes encrypted_data = 5;
   string metadata = 6;
   string file_path = 7;

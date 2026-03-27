@@ -20,6 +20,56 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type SecretType int32
+
+const (
+	SecretType_SECRET_TYPE_UNSPECIFIED SecretType = 0
+	SecretType_SECRET_TYPE_CREDENTIALS SecretType = 1
+	SecretType_SECRET_TYPE_TEXT        SecretType = 2
+	SecretType_SECRET_TYPE_CARD        SecretType = 3
+	SecretType_SECRET_TYPE_BINARY      SecretType = 4
+)
+
+// Enum value maps for SecretType.
+var (
+	SecretType_name = map[int32]string{
+		0: "SECRET_TYPE_UNSPECIFIED",
+		1: "SECRET_TYPE_CREDENTIALS",
+		2: "SECRET_TYPE_TEXT",
+		3: "SECRET_TYPE_CARD",
+		4: "SECRET_TYPE_BINARY",
+	}
+	SecretType_value = map[string]int32{
+		"SECRET_TYPE_UNSPECIFIED": 0,
+		"SECRET_TYPE_CREDENTIALS": 1,
+		"SECRET_TYPE_TEXT":        2,
+		"SECRET_TYPE_CARD":        3,
+		"SECRET_TYPE_BINARY":      4,
+	}
+)
+
+func (x SecretType) Enum() *SecretType {
+	p := new(SecretType)
+	*p = x
+	return p
+}
+
+func (x SecretType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SecretType) Descriptor() protoreflect.EnumDescriptor {
+	return file_gkeeper_proto_enumTypes[0].Descriptor()
+}
+
+func (SecretType) Type() protoreflect.EnumType {
+	return &file_gkeeper_proto_enumTypes[0]
+}
+
+func (x SecretType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 type RegisterRequest struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Email       *string                `protobuf:"bytes,1,opt,name=email"`
@@ -322,10 +372,9 @@ func (b0 LoginRequest_builder) Build() *LoginRequest {
 
 type LoginResponse struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Token       *string                `protobuf:"bytes,1,opt,name=token"`
-	xxx_hidden_Salt        *string                `protobuf:"bytes,2,opt,name=salt"`
-	xxx_hidden_UserId      *string                `protobuf:"bytes,3,opt,name=user_id,json=userId"`
-	xxx_hidden_Email       *string                `protobuf:"bytes,4,opt,name=email"`
+	xxx_hidden_Salt        *string                `protobuf:"bytes,1,opt,name=salt"`
+	xxx_hidden_UserId      *string                `protobuf:"bytes,2,opt,name=user_id,json=userId"`
+	xxx_hidden_Email       *string                `protobuf:"bytes,3,opt,name=email"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -355,16 +404,6 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 		return ms
 	}
 	return mi.MessageOf(x)
-}
-
-func (x *LoginResponse) GetToken() string {
-	if x != nil {
-		if x.xxx_hidden_Token != nil {
-			return *x.xxx_hidden_Token
-		}
-		return ""
-	}
-	return ""
 }
 
 func (x *LoginResponse) GetSalt() string {
@@ -397,78 +436,60 @@ func (x *LoginResponse) GetEmail() string {
 	return ""
 }
 
-func (x *LoginResponse) SetToken(v string) {
-	x.xxx_hidden_Token = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 4)
-}
-
 func (x *LoginResponse) SetSalt(v string) {
 	x.xxx_hidden_Salt = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
 }
 
 func (x *LoginResponse) SetUserId(v string) {
 	x.xxx_hidden_UserId = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
 }
 
 func (x *LoginResponse) SetEmail(v string) {
 	x.xxx_hidden_Email = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 4)
-}
-
-func (x *LoginResponse) HasToken() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
 }
 
 func (x *LoginResponse) HasSalt() bool {
 	if x == nil {
 		return false
 	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
 }
 
 func (x *LoginResponse) HasUserId() bool {
 	if x == nil {
 		return false
 	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
 }
 
 func (x *LoginResponse) HasEmail() bool {
 	if x == nil {
 		return false
 	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
-}
-
-func (x *LoginResponse) ClearToken() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
-	x.xxx_hidden_Token = nil
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
 }
 
 func (x *LoginResponse) ClearSalt() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_Salt = nil
 }
 
 func (x *LoginResponse) ClearUserId() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
 	x.xxx_hidden_UserId = nil
 }
 
 func (x *LoginResponse) ClearEmail() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
 	x.xxx_hidden_Email = nil
 }
 
 type LoginResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Token  *string
 	Salt   *string
 	UserId *string
 	Email  *string
@@ -478,20 +499,16 @@ func (b0 LoginResponse_builder) Build() *LoginResponse {
 	m0 := &LoginResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	if b.Token != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 4)
-		x.xxx_hidden_Token = b.Token
-	}
 	if b.Salt != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
 		x.xxx_hidden_Salt = b.Salt
 	}
 	if b.UserId != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
 		x.xxx_hidden_UserId = b.UserId
 	}
 	if b.Email != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
 		x.xxx_hidden_Email = b.Email
 	}
 	return m0
@@ -501,7 +518,7 @@ type CreateSecretRequest struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Token         *string                `protobuf:"bytes,1,opt,name=token"`
 	xxx_hidden_Title         *string                `protobuf:"bytes,2,opt,name=title"`
-	xxx_hidden_Type          *string                `protobuf:"bytes,3,opt,name=type"`
+	xxx_hidden_Type          SecretType             `protobuf:"varint,3,opt,name=type,enum=vsevolodryzhov.gkeeper.proto.SecretType"`
 	xxx_hidden_EncryptedData []byte                 `protobuf:"bytes,4,opt,name=encrypted_data,json=encryptedData"`
 	xxx_hidden_Metadata      *string                `protobuf:"bytes,5,opt,name=metadata"`
 	xxx_hidden_FilePath      *string                `protobuf:"bytes,6,opt,name=file_path,json=filePath"`
@@ -556,14 +573,13 @@ func (x *CreateSecretRequest) GetTitle() string {
 	return ""
 }
 
-func (x *CreateSecretRequest) GetType() string {
+func (x *CreateSecretRequest) GetType() SecretType {
 	if x != nil {
-		if x.xxx_hidden_Type != nil {
-			return *x.xxx_hidden_Type
+		if protoimpl.X.Present(&(x.XXX_presence[0]), 2) {
+			return x.xxx_hidden_Type
 		}
-		return ""
 	}
-	return ""
+	return SecretType_SECRET_TYPE_UNSPECIFIED
 }
 
 func (x *CreateSecretRequest) GetEncryptedData() []byte {
@@ -603,8 +619,8 @@ func (x *CreateSecretRequest) SetTitle(v string) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 6)
 }
 
-func (x *CreateSecretRequest) SetType(v string) {
-	x.xxx_hidden_Type = &v
+func (x *CreateSecretRequest) SetType(v SecretType) {
+	x.xxx_hidden_Type = v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 6)
 }
 
@@ -680,7 +696,7 @@ func (x *CreateSecretRequest) ClearTitle() {
 
 func (x *CreateSecretRequest) ClearType() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
-	x.xxx_hidden_Type = nil
+	x.xxx_hidden_Type = SecretType_SECRET_TYPE_UNSPECIFIED
 }
 
 func (x *CreateSecretRequest) ClearEncryptedData() {
@@ -703,7 +719,7 @@ type CreateSecretRequest_builder struct {
 
 	Token         *string
 	Title         *string
-	Type          *string
+	Type          *SecretType
 	EncryptedData []byte
 	Metadata      *string
 	FilePath      *string
@@ -723,7 +739,7 @@ func (b0 CreateSecretRequest_builder) Build() *CreateSecretRequest {
 	}
 	if b.Type != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 6)
-		x.xxx_hidden_Type = b.Type
+		x.xxx_hidden_Type = *b.Type
 	}
 	if b.EncryptedData != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 6)
@@ -856,7 +872,7 @@ type UpdateSecretRequest struct {
 	xxx_hidden_Token         *string                `protobuf:"bytes,1,opt,name=token"`
 	xxx_hidden_Id            *string                `protobuf:"bytes,2,opt,name=id"`
 	xxx_hidden_Title         *string                `protobuf:"bytes,3,opt,name=title"`
-	xxx_hidden_Type          *string                `protobuf:"bytes,4,opt,name=type"`
+	xxx_hidden_Type          SecretType             `protobuf:"varint,4,opt,name=type,enum=vsevolodryzhov.gkeeper.proto.SecretType"`
 	xxx_hidden_EncryptedData []byte                 `protobuf:"bytes,5,opt,name=encrypted_data,json=encryptedData"`
 	xxx_hidden_Metadata      *string                `protobuf:"bytes,6,opt,name=metadata"`
 	xxx_hidden_FilePath      *string                `protobuf:"bytes,7,opt,name=file_path,json=filePath"`
@@ -921,14 +937,13 @@ func (x *UpdateSecretRequest) GetTitle() string {
 	return ""
 }
 
-func (x *UpdateSecretRequest) GetType() string {
+func (x *UpdateSecretRequest) GetType() SecretType {
 	if x != nil {
-		if x.xxx_hidden_Type != nil {
-			return *x.xxx_hidden_Type
+		if protoimpl.X.Present(&(x.XXX_presence[0]), 3) {
+			return x.xxx_hidden_Type
 		}
-		return ""
 	}
-	return ""
+	return SecretType_SECRET_TYPE_UNSPECIFIED
 }
 
 func (x *UpdateSecretRequest) GetEncryptedData() []byte {
@@ -973,8 +988,8 @@ func (x *UpdateSecretRequest) SetTitle(v string) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 7)
 }
 
-func (x *UpdateSecretRequest) SetType(v string) {
-	x.xxx_hidden_Type = &v
+func (x *UpdateSecretRequest) SetType(v SecretType) {
+	x.xxx_hidden_Type = v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 7)
 }
 
@@ -1062,7 +1077,7 @@ func (x *UpdateSecretRequest) ClearTitle() {
 
 func (x *UpdateSecretRequest) ClearType() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
-	x.xxx_hidden_Type = nil
+	x.xxx_hidden_Type = SecretType_SECRET_TYPE_UNSPECIFIED
 }
 
 func (x *UpdateSecretRequest) ClearEncryptedData() {
@@ -1086,7 +1101,7 @@ type UpdateSecretRequest_builder struct {
 	Token         *string
 	Id            *string
 	Title         *string
-	Type          *string
+	Type          *SecretType
 	EncryptedData []byte
 	Metadata      *string
 	FilePath      *string
@@ -1110,7 +1125,7 @@ func (b0 UpdateSecretRequest_builder) Build() *UpdateSecretRequest {
 	}
 	if b.Type != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 7)
-		x.xxx_hidden_Type = b.Type
+		x.xxx_hidden_Type = *b.Type
 	}
 	if b.EncryptedData != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 7)
@@ -1745,7 +1760,7 @@ type Secret struct {
 	xxx_hidden_Id            *string                `protobuf:"bytes,1,opt,name=id"`
 	xxx_hidden_UserId        *string                `protobuf:"bytes,2,opt,name=user_id,json=userId"`
 	xxx_hidden_Title         *string                `protobuf:"bytes,3,opt,name=title"`
-	xxx_hidden_Type          *string                `protobuf:"bytes,4,opt,name=type"`
+	xxx_hidden_Type          SecretType             `protobuf:"varint,4,opt,name=type,enum=vsevolodryzhov.gkeeper.proto.SecretType"`
 	xxx_hidden_EncryptedData []byte                 `protobuf:"bytes,5,opt,name=encrypted_data,json=encryptedData"`
 	xxx_hidden_Metadata      *string                `protobuf:"bytes,6,opt,name=metadata"`
 	xxx_hidden_FilePath      *string                `protobuf:"bytes,7,opt,name=file_path,json=filePath"`
@@ -1813,14 +1828,13 @@ func (x *Secret) GetTitle() string {
 	return ""
 }
 
-func (x *Secret) GetType() string {
+func (x *Secret) GetType() SecretType {
 	if x != nil {
-		if x.xxx_hidden_Type != nil {
-			return *x.xxx_hidden_Type
+		if protoimpl.X.Present(&(x.XXX_presence[0]), 3) {
+			return x.xxx_hidden_Type
 		}
-		return ""
 	}
-	return ""
+	return SecretType_SECRET_TYPE_UNSPECIFIED
 }
 
 func (x *Secret) GetEncryptedData() []byte {
@@ -1895,8 +1909,8 @@ func (x *Secret) SetTitle(v string) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 10)
 }
 
-func (x *Secret) SetType(v string) {
-	x.xxx_hidden_Type = &v
+func (x *Secret) SetType(v SecretType) {
+	x.xxx_hidden_Type = v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 10)
 }
 
@@ -2020,7 +2034,7 @@ func (x *Secret) ClearTitle() {
 
 func (x *Secret) ClearType() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
-	x.xxx_hidden_Type = nil
+	x.xxx_hidden_Type = SecretType_SECRET_TYPE_UNSPECIFIED
 }
 
 func (x *Secret) ClearEncryptedData() {
@@ -2059,7 +2073,7 @@ type Secret_builder struct {
 	Id            *string
 	UserId        *string
 	Title         *string
-	Type          *string
+	Type          *SecretType
 	EncryptedData []byte
 	Metadata      *string
 	FilePath      *string
@@ -2086,7 +2100,7 @@ func (b0 Secret_builder) Build() *Secret {
 	}
 	if b.Type != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 10)
-		x.xxx_hidden_Type = b.Type
+		x.xxx_hidden_Type = *b.Type
 	}
 	if b.EncryptedData != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 10)
@@ -2127,28 +2141,27 @@ const file_gkeeper_proto_rawDesc = "" +
 	"\x06result\x18\x01 \x01(\tR\x06result\"@\n" +
 	"\fLoginRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"h\n" +
-	"\rLoginResponse\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\x12\x12\n" +
-	"\x04salt\x18\x02 \x01(\tR\x04salt\x12\x17\n" +
-	"\auser_id\x18\x03 \x01(\tR\x06userId\x12\x14\n" +
-	"\x05email\x18\x04 \x01(\tR\x05email\"\xb5\x01\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"R\n" +
+	"\rLoginResponse\x12\x12\n" +
+	"\x04salt\x18\x01 \x01(\tR\x04salt\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\"\xdf\x01\n" +
 	"\x13CreateSecretRequest\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x14\n" +
-	"\x05title\x18\x02 \x01(\tR\x05title\x12\x12\n" +
-	"\x04type\x18\x03 \x01(\tR\x04type\x12%\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12<\n" +
+	"\x04type\x18\x03 \x01(\x0e2(.vsevolodryzhov.gkeeper.proto.SecretTypeR\x04type\x12%\n" +
 	"\x0eencrypted_data\x18\x04 \x01(\fR\rencryptedData\x12\x1a\n" +
 	"\bmetadata\x18\x05 \x01(\tR\bmetadata\x12\x1b\n" +
 	"\tfile_path\x18\x06 \x01(\tR\bfilePath\"E\n" +
 	"\x14CreateSecretResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x02 \x01(\tR\tcreatedAt\"\xc5\x01\n" +
+	"created_at\x18\x02 \x01(\tR\tcreatedAt\"\xef\x01\n" +
 	"\x13UpdateSecretRequest\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x14\n" +
-	"\x05title\x18\x03 \x01(\tR\x05title\x12\x12\n" +
-	"\x04type\x18\x04 \x01(\tR\x04type\x12%\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12<\n" +
+	"\x04type\x18\x04 \x01(\x0e2(.vsevolodryzhov.gkeeper.proto.SecretTypeR\x04type\x12%\n" +
 	"\x0eencrypted_data\x18\x05 \x01(\fR\rencryptedData\x12\x1a\n" +
 	"\bmetadata\x18\x06 \x01(\tR\bmetadata\x12\x1b\n" +
 	"\tfile_path\x18\a \x01(\tR\bfilePath\"5\n" +
@@ -2170,12 +2183,12 @@ const file_gkeeper_proto_rawDesc = "" +
 	"\x14DeleteSecretResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1d\n" +
 	"\n" +
-	"deleted_at\x18\x02 \x01(\tR\tdeletedAt\"\x98\x02\n" +
+	"deleted_at\x18\x02 \x01(\tR\tdeletedAt\"\xc2\x02\n" +
 	"\x06Secret\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x14\n" +
-	"\x05title\x18\x03 \x01(\tR\x05title\x12\x12\n" +
-	"\x04type\x18\x04 \x01(\tR\x04type\x12%\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12<\n" +
+	"\x04type\x18\x04 \x01(\x0e2(.vsevolodryzhov.gkeeper.proto.SecretTypeR\x04type\x12%\n" +
 	"\x0eencrypted_data\x18\x05 \x01(\fR\rencryptedData\x12\x1a\n" +
 	"\bmetadata\x18\x06 \x01(\tR\bmetadata\x12\x1b\n" +
 	"\tfile_path\x18\a \x01(\tR\bfilePath\x12\x1d\n" +
@@ -2185,7 +2198,14 @@ const file_gkeeper_proto_rawDesc = "" +
 	"updated_at\x18\t \x01(\tR\tupdatedAt\x12\x1d\n" +
 	"\n" +
 	"deleted_at\x18\n" +
-	" \x01(\tR\tdeletedAt2\x9a\x06\n" +
+	" \x01(\tR\tdeletedAt*\x8a\x01\n" +
+	"\n" +
+	"SecretType\x12\x1b\n" +
+	"\x17SECRET_TYPE_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17SECRET_TYPE_CREDENTIALS\x10\x01\x12\x14\n" +
+	"\x10SECRET_TYPE_TEXT\x10\x02\x12\x14\n" +
+	"\x10SECRET_TYPE_CARD\x10\x03\x12\x16\n" +
+	"\x12SECRET_TYPE_BINARY\x10\x042\x9a\x06\n" +
 	"\aGKeeper\x12i\n" +
 	"\bRegister\x12-.vsevolodryzhov.gkeeper.proto.RegisterRequest\x1a..vsevolodryzhov.gkeeper.proto.RegisterResponse\x12`\n" +
 	"\x05Login\x12*.vsevolodryzhov.gkeeper.proto.LoginRequest\x1a+.vsevolodryzhov.gkeeper.proto.LoginResponse\x12u\n" +
@@ -2196,46 +2216,51 @@ const file_gkeeper_proto_rawDesc = "" +
 	"\tGetSecret\x12..vsevolodryzhov.gkeeper.proto.GetSecretRequest\x1a/.vsevolodryzhov.gkeeper.proto.GetSecretResponse\x12u\n" +
 	"\fDeleteSecret\x121.vsevolodryzhov.gkeeper.proto.DeleteSecretRequest\x1a2.vsevolodryzhov.gkeeper.proto.DeleteSecretResponseB2Z0github.com/vsevolod-ryzhov/gkeeper.git/api/protob\beditionsp\xe8\a"
 
+var file_gkeeper_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_gkeeper_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_gkeeper_proto_goTypes = []any{
-	(*RegisterRequest)(nil),      // 0: vsevolodryzhov.gkeeper.proto.RegisterRequest
-	(*RegisterResponse)(nil),     // 1: vsevolodryzhov.gkeeper.proto.RegisterResponse
-	(*LoginRequest)(nil),         // 2: vsevolodryzhov.gkeeper.proto.LoginRequest
-	(*LoginResponse)(nil),        // 3: vsevolodryzhov.gkeeper.proto.LoginResponse
-	(*CreateSecretRequest)(nil),  // 4: vsevolodryzhov.gkeeper.proto.CreateSecretRequest
-	(*CreateSecretResponse)(nil), // 5: vsevolodryzhov.gkeeper.proto.CreateSecretResponse
-	(*UpdateSecretRequest)(nil),  // 6: vsevolodryzhov.gkeeper.proto.UpdateSecretRequest
-	(*UpdateSecretResponse)(nil), // 7: vsevolodryzhov.gkeeper.proto.UpdateSecretResponse
-	(*GetSecretsRequest)(nil),    // 8: vsevolodryzhov.gkeeper.proto.GetSecretsRequest
-	(*GetSecretsResponse)(nil),   // 9: vsevolodryzhov.gkeeper.proto.GetSecretsResponse
-	(*GetSecretRequest)(nil),     // 10: vsevolodryzhov.gkeeper.proto.GetSecretRequest
-	(*GetSecretResponse)(nil),    // 11: vsevolodryzhov.gkeeper.proto.GetSecretResponse
-	(*DeleteSecretRequest)(nil),  // 12: vsevolodryzhov.gkeeper.proto.DeleteSecretRequest
-	(*DeleteSecretResponse)(nil), // 13: vsevolodryzhov.gkeeper.proto.DeleteSecretResponse
-	(*Secret)(nil),               // 14: vsevolodryzhov.gkeeper.proto.Secret
+	(SecretType)(0),              // 0: vsevolodryzhov.gkeeper.proto.SecretType
+	(*RegisterRequest)(nil),      // 1: vsevolodryzhov.gkeeper.proto.RegisterRequest
+	(*RegisterResponse)(nil),     // 2: vsevolodryzhov.gkeeper.proto.RegisterResponse
+	(*LoginRequest)(nil),         // 3: vsevolodryzhov.gkeeper.proto.LoginRequest
+	(*LoginResponse)(nil),        // 4: vsevolodryzhov.gkeeper.proto.LoginResponse
+	(*CreateSecretRequest)(nil),  // 5: vsevolodryzhov.gkeeper.proto.CreateSecretRequest
+	(*CreateSecretResponse)(nil), // 6: vsevolodryzhov.gkeeper.proto.CreateSecretResponse
+	(*UpdateSecretRequest)(nil),  // 7: vsevolodryzhov.gkeeper.proto.UpdateSecretRequest
+	(*UpdateSecretResponse)(nil), // 8: vsevolodryzhov.gkeeper.proto.UpdateSecretResponse
+	(*GetSecretsRequest)(nil),    // 9: vsevolodryzhov.gkeeper.proto.GetSecretsRequest
+	(*GetSecretsResponse)(nil),   // 10: vsevolodryzhov.gkeeper.proto.GetSecretsResponse
+	(*GetSecretRequest)(nil),     // 11: vsevolodryzhov.gkeeper.proto.GetSecretRequest
+	(*GetSecretResponse)(nil),    // 12: vsevolodryzhov.gkeeper.proto.GetSecretResponse
+	(*DeleteSecretRequest)(nil),  // 13: vsevolodryzhov.gkeeper.proto.DeleteSecretRequest
+	(*DeleteSecretResponse)(nil), // 14: vsevolodryzhov.gkeeper.proto.DeleteSecretResponse
+	(*Secret)(nil),               // 15: vsevolodryzhov.gkeeper.proto.Secret
 }
 var file_gkeeper_proto_depIdxs = []int32{
-	14, // 0: vsevolodryzhov.gkeeper.proto.GetSecretsResponse.secrets:type_name -> vsevolodryzhov.gkeeper.proto.Secret
-	14, // 1: vsevolodryzhov.gkeeper.proto.GetSecretResponse.secret:type_name -> vsevolodryzhov.gkeeper.proto.Secret
-	0,  // 2: vsevolodryzhov.gkeeper.proto.GKeeper.Register:input_type -> vsevolodryzhov.gkeeper.proto.RegisterRequest
-	2,  // 3: vsevolodryzhov.gkeeper.proto.GKeeper.Login:input_type -> vsevolodryzhov.gkeeper.proto.LoginRequest
-	4,  // 4: vsevolodryzhov.gkeeper.proto.GKeeper.CreateSecret:input_type -> vsevolodryzhov.gkeeper.proto.CreateSecretRequest
-	6,  // 5: vsevolodryzhov.gkeeper.proto.GKeeper.UpdateSecret:input_type -> vsevolodryzhov.gkeeper.proto.UpdateSecretRequest
-	8,  // 6: vsevolodryzhov.gkeeper.proto.GKeeper.GetSecrets:input_type -> vsevolodryzhov.gkeeper.proto.GetSecretsRequest
-	10, // 7: vsevolodryzhov.gkeeper.proto.GKeeper.GetSecret:input_type -> vsevolodryzhov.gkeeper.proto.GetSecretRequest
-	12, // 8: vsevolodryzhov.gkeeper.proto.GKeeper.DeleteSecret:input_type -> vsevolodryzhov.gkeeper.proto.DeleteSecretRequest
-	1,  // 9: vsevolodryzhov.gkeeper.proto.GKeeper.Register:output_type -> vsevolodryzhov.gkeeper.proto.RegisterResponse
-	3,  // 10: vsevolodryzhov.gkeeper.proto.GKeeper.Login:output_type -> vsevolodryzhov.gkeeper.proto.LoginResponse
-	5,  // 11: vsevolodryzhov.gkeeper.proto.GKeeper.CreateSecret:output_type -> vsevolodryzhov.gkeeper.proto.CreateSecretResponse
-	7,  // 12: vsevolodryzhov.gkeeper.proto.GKeeper.UpdateSecret:output_type -> vsevolodryzhov.gkeeper.proto.UpdateSecretResponse
-	9,  // 13: vsevolodryzhov.gkeeper.proto.GKeeper.GetSecrets:output_type -> vsevolodryzhov.gkeeper.proto.GetSecretsResponse
-	11, // 14: vsevolodryzhov.gkeeper.proto.GKeeper.GetSecret:output_type -> vsevolodryzhov.gkeeper.proto.GetSecretResponse
-	13, // 15: vsevolodryzhov.gkeeper.proto.GKeeper.DeleteSecret:output_type -> vsevolodryzhov.gkeeper.proto.DeleteSecretResponse
-	9,  // [9:16] is the sub-list for method output_type
-	2,  // [2:9] is the sub-list for method input_type
-	2,  // [2:2] is the sub-list for extension type_name
-	2,  // [2:2] is the sub-list for extension extendee
-	0,  // [0:2] is the sub-list for field type_name
+	0,  // 0: vsevolodryzhov.gkeeper.proto.CreateSecretRequest.type:type_name -> vsevolodryzhov.gkeeper.proto.SecretType
+	0,  // 1: vsevolodryzhov.gkeeper.proto.UpdateSecretRequest.type:type_name -> vsevolodryzhov.gkeeper.proto.SecretType
+	15, // 2: vsevolodryzhov.gkeeper.proto.GetSecretsResponse.secrets:type_name -> vsevolodryzhov.gkeeper.proto.Secret
+	15, // 3: vsevolodryzhov.gkeeper.proto.GetSecretResponse.secret:type_name -> vsevolodryzhov.gkeeper.proto.Secret
+	0,  // 4: vsevolodryzhov.gkeeper.proto.Secret.type:type_name -> vsevolodryzhov.gkeeper.proto.SecretType
+	1,  // 5: vsevolodryzhov.gkeeper.proto.GKeeper.Register:input_type -> vsevolodryzhov.gkeeper.proto.RegisterRequest
+	3,  // 6: vsevolodryzhov.gkeeper.proto.GKeeper.Login:input_type -> vsevolodryzhov.gkeeper.proto.LoginRequest
+	5,  // 7: vsevolodryzhov.gkeeper.proto.GKeeper.CreateSecret:input_type -> vsevolodryzhov.gkeeper.proto.CreateSecretRequest
+	7,  // 8: vsevolodryzhov.gkeeper.proto.GKeeper.UpdateSecret:input_type -> vsevolodryzhov.gkeeper.proto.UpdateSecretRequest
+	9,  // 9: vsevolodryzhov.gkeeper.proto.GKeeper.GetSecrets:input_type -> vsevolodryzhov.gkeeper.proto.GetSecretsRequest
+	11, // 10: vsevolodryzhov.gkeeper.proto.GKeeper.GetSecret:input_type -> vsevolodryzhov.gkeeper.proto.GetSecretRequest
+	13, // 11: vsevolodryzhov.gkeeper.proto.GKeeper.DeleteSecret:input_type -> vsevolodryzhov.gkeeper.proto.DeleteSecretRequest
+	2,  // 12: vsevolodryzhov.gkeeper.proto.GKeeper.Register:output_type -> vsevolodryzhov.gkeeper.proto.RegisterResponse
+	4,  // 13: vsevolodryzhov.gkeeper.proto.GKeeper.Login:output_type -> vsevolodryzhov.gkeeper.proto.LoginResponse
+	6,  // 14: vsevolodryzhov.gkeeper.proto.GKeeper.CreateSecret:output_type -> vsevolodryzhov.gkeeper.proto.CreateSecretResponse
+	8,  // 15: vsevolodryzhov.gkeeper.proto.GKeeper.UpdateSecret:output_type -> vsevolodryzhov.gkeeper.proto.UpdateSecretResponse
+	10, // 16: vsevolodryzhov.gkeeper.proto.GKeeper.GetSecrets:output_type -> vsevolodryzhov.gkeeper.proto.GetSecretsResponse
+	12, // 17: vsevolodryzhov.gkeeper.proto.GKeeper.GetSecret:output_type -> vsevolodryzhov.gkeeper.proto.GetSecretResponse
+	14, // 18: vsevolodryzhov.gkeeper.proto.GKeeper.DeleteSecret:output_type -> vsevolodryzhov.gkeeper.proto.DeleteSecretResponse
+	12, // [12:19] is the sub-list for method output_type
+	5,  // [5:12] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_gkeeper_proto_init() }
@@ -2248,13 +2273,14 @@ func file_gkeeper_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gkeeper_proto_rawDesc), len(file_gkeeper_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_gkeeper_proto_goTypes,
 		DependencyIndexes: file_gkeeper_proto_depIdxs,
+		EnumInfos:         file_gkeeper_proto_enumTypes,
 		MessageInfos:      file_gkeeper_proto_msgTypes,
 	}.Build()
 	File_gkeeper_proto = out.File

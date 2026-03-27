@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	pb "gkeeper/api/proto"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,6 +14,38 @@ const (
 	SecretTypeCard        = "card"
 	SecretTypeBinary      = "binary"
 )
+
+// SecretTypeToProto converts a string secret type to the protobuf enum value.
+func SecretTypeToProto(s string) pb.SecretType {
+	switch s {
+	case SecretTypeCredentials:
+		return pb.SecretType_SECRET_TYPE_CREDENTIALS
+	case SecretTypeText:
+		return pb.SecretType_SECRET_TYPE_TEXT
+	case SecretTypeCard:
+		return pb.SecretType_SECRET_TYPE_CARD
+	case SecretTypeBinary:
+		return pb.SecretType_SECRET_TYPE_BINARY
+	default:
+		return pb.SecretType_SECRET_TYPE_UNSPECIFIED
+	}
+}
+
+// ProtoToSecretType converts a protobuf enum value to a string secret type.
+func ProtoToSecretType(t pb.SecretType) string {
+	switch t {
+	case pb.SecretType_SECRET_TYPE_CREDENTIALS:
+		return SecretTypeCredentials
+	case pb.SecretType_SECRET_TYPE_TEXT:
+		return SecretTypeText
+	case pb.SecretType_SECRET_TYPE_CARD:
+		return SecretTypeCard
+	case pb.SecretType_SECRET_TYPE_BINARY:
+		return SecretTypeBinary
+	default:
+		return ""
+	}
+}
 
 type EncryptedPayload struct {
 	Username string `json:"username,omitempty"`

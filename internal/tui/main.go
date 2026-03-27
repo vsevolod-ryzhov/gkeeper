@@ -5,6 +5,7 @@ import (
 
 	pb "gkeeper/api/proto"
 	"gkeeper/internal/grpcclient"
+	"gkeeper/internal/model"
 	"gkeeper/internal/tui/models"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -197,7 +198,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			selected := m.list.Selected
 			m.list.Selected = nil
 
-			if selected.GetType() == "binary" {
+			if selected.GetType() == pb.SecretType_SECRET_TYPE_BINARY {
 				m.download = models.NewDownloadModel(selected, m.client)
 				m.state = DownloadView
 				cmds = append(cmds, m.download.Init())
@@ -248,7 +249,7 @@ func (m MainModel) View() string {
 }
 
 func NewEditFormFromProto(secret *pb.Secret, authToken string, client *grpcclient.Client) models.SecretFormModel {
-	form := models.NewSecretFormModel(secret.GetType(), true, nil, authToken, client)
+	form := models.NewSecretFormModel(model.ProtoToSecretType(secret.GetType()), true, nil, authToken, client)
 	form.SecretID = secret.GetId()
 	form.TitleInput.SetValue(secret.GetTitle())
 

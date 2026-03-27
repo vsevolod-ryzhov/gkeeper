@@ -5,6 +5,7 @@ import (
 	"fmt"
 	pb "gkeeper/api/proto"
 	"gkeeper/internal/grpcclient"
+	"gkeeper/internal/model"
 	"gkeeper/internal/tui/styles"
 	"strings"
 
@@ -41,7 +42,7 @@ func (m ListModel) Init() tea.Cmd {
 func (m ListModel) loadSecrets() tea.Cmd {
 	return func() tea.Msg {
 		ctx := context.Background()
-		secrets, err := m.client.GetSecrets(ctx, m.AuthToken)
+		secrets, err := m.client.GetSecrets(ctx)
 		if err != nil {
 			return SecretsLoadedMsg{Error: err}
 		}
@@ -111,7 +112,7 @@ func (m ListModel) View() string {
 	}
 
 	for i, secret := range m.secrets {
-		label := fmt.Sprintf("[%s] %s", secret.GetType(), secret.GetTitle())
+		label := fmt.Sprintf("[%s] %s", model.ProtoToSecretType(secret.GetType()), secret.GetTitle())
 		s.WriteString(styles.RenderMenuItem(label, i == m.cursor))
 		s.WriteString("\n")
 	}
