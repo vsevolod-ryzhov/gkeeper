@@ -5,7 +5,6 @@ Project is still not fully complete
 At least I have to add more tests everywhere  
 Most of major functions seems working  
 Binary data is stored now as encrypted string in database, not the best approach for large files. I'll try to find another solution for this
-Removing of secrets is not implemented now
 
 ## TODO
 ### server
@@ -17,7 +16,7 @@ Removing of secrets is not implemented now
 [+] user authentication and authorization on the remote server;  
 [+] access to private data upon request.
 ### general
-[+-] creation, editing, and deletion of data on the server or client side;  
+[+] creation, editing, and deletion of data on the server or client side;  
 [+] new user registration form;  
 [+] selection of storage location and data storage format;  
 [+] ensuring security of data transfer and storage;  
