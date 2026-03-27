@@ -14,16 +14,6 @@ import (
 
 var logger *zap.Logger
 
-func init() {
-	log, err := zap.NewDevelopment()
-	logger = log
-
-	if err != nil {
-		panic(err)
-	}
-	defer log.Sync()
-}
-
 func Run(ctx context.Context) error {
 	config.ParseFlags()
 
@@ -59,10 +49,18 @@ func Run(ctx context.Context) error {
 }
 
 func main() {
+	log, err := zap.NewDevelopment()
+	logger = log
+
+	if err != nil {
+		panic(err)
+	}
+	defer log.Sync()
+
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	if err := Run(ctx); err != nil {
-		logger.Fatal(err.Error())
+	if errRun := Run(ctx); errRun != nil {
+		logger.Fatal(errRun.Error())
 	}
 }
