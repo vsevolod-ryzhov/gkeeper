@@ -36,9 +36,10 @@ Binary data is stored now as encrypted string in database, not the best approach
 - migrate -database "postgres://postgres_user:postgres_password@localhost:5432/postgres_db?sslmode=disable" -path ./migrations up
 - go run cmd/server/main.go -j="<token here>" -c="crt/server.crt" -k="crt/server.key" -d="host=localhost user=postgres_user password=postgres_password dbname=postgres_db sslmode=disable" -a="localhost:8000"
 - clear && go run cmd/client/main.go-j="<token here>" -a="localhost:8000"
+- go generate ./... # for update of mocks
 
 ## testing
 - go test ./... -coverprofile cover.out
 - go tool cover -html=cover.out
-- go test $(go list ./... | grep -v -E '/api/proto|/model$|/cmd/|/tui') -coverprofile=coverage.out && go tool cover -func=coverage.out | grep total
+- go test $(go list ./... | grep -v -E '/mocks|/api/proto|/model$|/cmd/|/tui') -coverprofile=coverage.out && go tool cover -func=coverage.out | grep total
 - go test ./internal/storage/ -tags=integration -v

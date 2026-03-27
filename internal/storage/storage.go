@@ -15,6 +15,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+//go:generate mockery
 type Storage interface {
 	Ping(ctx context.Context) error
 	CreateUser(ctx context.Context, email string, passwordHash string, salt string) (*model.UserRecord, error)

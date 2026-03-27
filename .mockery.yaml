@@ -1,0 +1,14 @@
+with-expecter: true
+packages:
+  gkeeper/api/proto:
+    interfaces:
+      GKeeperClient:
+        config:
+          dir: internal/mocks/proto
+          outpkg: mockproto
+  gkeeper/internal/storage:
+    interfaces:
+      Storage:
+        config:
+          dir: internal/mocks/storage
+          outpkg: mockstorage

@@ -1,5 +1,7 @@
 package grpcclient
 
+//go:generate mockery
+
 import (
 	"context"
 	pb "gkeeper/api/proto"
