@@ -104,8 +104,5 @@ func (c *Client) GetCrypto() *crypto.Crypto {
 }
 
 func (c *Client) createContextWithToken(ctx context.Context) context.Context {
-	//if c.token != "" {
 	return metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+c.token)
-	//}
-	//return ctx
 }
