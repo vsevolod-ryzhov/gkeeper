@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gkeeper/internal/config"
+	"gkeeper/internal/filestorage"
 	"gkeeper/internal/grpcserver"
 	"gkeeper/internal/storage"
 	"os/signal"
@@ -22,6 +23,17 @@ func Run(ctx context.Context) error {
 		return storageErr
 	}
 
+	fileStore, err := filestorage.NewMinioStorage(
+		config.Options.MinioEndpoint,
+		config.Options.MinioAccessKey,
+		config.Options.MinioSecretKey,
+		config.Options.MinioBucket,
+		config.Options.MinioUseSSL,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to init minio: %w", err)
+	}
+
 	errCh := make(chan error, 1)
 
 	grpcServer := grpcserver.NewServer(
@@ -34,7 +46,7 @@ func Run(ctx context.Context) error {
 	)
 
 	go func() {
-		if serverErr := grpcServer.Start(dbStorage); serverErr != nil {
+		if serverErr := grpcServer.Start(dbStorage, fileStore); serverErr != nil {
 			errCh <- fmt.Errorf("gRPC server failed: %w", serverErr)
 		}
 	}()

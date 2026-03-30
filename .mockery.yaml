@@ -12,3 +12,9 @@ packages:
         config:
           dir: internal/mocks/storage
           outpkg: mockstorage
+  gkeeper/internal/filestorage:
+    interfaces:
+      FileStorage:
+        config:
+          dir: internal/mocks/filestorage
+          outpkg: mockfilestorage

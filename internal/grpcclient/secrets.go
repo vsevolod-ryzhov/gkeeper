@@ -161,6 +161,20 @@ func (c *Client) DeleteSecret(ctx context.Context, id string) error {
 	return nil
 }
 
+func (c *Client) GetSecret(ctx context.Context, id string) (*pb.Secret, error) {
+	ctxWithToken := c.createContextWithToken(ctx)
+
+	response, err := c.client.GetSecret(ctxWithToken, pb.GetSecretRequest_builder{
+		Id: &id,
+	}.Build())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response.GetSecret(), nil
+}
+
 func (c *Client) GetSecrets(ctx context.Context) ([]*pb.Secret, error) {
 	ctxWithToken := c.createContextWithToken(ctx)
 

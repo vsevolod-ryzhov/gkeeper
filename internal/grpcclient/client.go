@@ -33,7 +33,14 @@ func NewClient(logger *zap.Logger) *Client {
 		log.Fatal(err)
 	}
 
-	conn, err := grpc.NewClient(config.Options.AppPort, grpc.WithTransportCredentials(tlsCreds))
+	const maxMessageSize = 51 * 1024 * 1024
+	conn, err := grpc.NewClient(config.Options.AppPort,
+		grpc.WithTransportCredentials(tlsCreds),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(maxMessageSize),
+			grpc.MaxCallSendMsgSize(maxMessageSize),
+		),
+	)
 	if err != nil {
 		panic(err)
 	}

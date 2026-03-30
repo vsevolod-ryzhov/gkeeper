@@ -23,7 +23,7 @@ func ctxWithUserID(userID uuid.UUID) context.Context {
 }
 
 func TestCreateSecret_Success(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	userID := uuid.New()
 	secretID := uuid.New()
@@ -55,7 +55,7 @@ func TestCreateSecret_Success(t *testing.T) {
 }
 
 func TestCreateSecret_Unauthenticated(t *testing.T) {
-	server, _ := newTestServer(t)
+	server, _, _ := newTestServer(t)
 
 	secretType := pb.SecretType_SECRET_TYPE_TEXT
 	req := pb.CreateSecretRequest_builder{
@@ -71,7 +71,7 @@ func TestCreateSecret_Unauthenticated(t *testing.T) {
 }
 
 func TestCreateSecret_StorageError(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	userID := uuid.New()
 
@@ -96,7 +96,7 @@ func TestCreateSecret_StorageError(t *testing.T) {
 }
 
 func TestUpdateSecret_Success(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	userID := uuid.New()
 	secretID := uuid.New()
@@ -126,7 +126,7 @@ func TestUpdateSecret_Success(t *testing.T) {
 }
 
 func TestUpdateSecret_Unauthenticated(t *testing.T) {
-	server, _ := newTestServer(t)
+	server, _, _ := newTestServer(t)
 
 	req := pb.UpdateSecretRequest_builder{
 		Id:    proto.String("some-id"),
@@ -141,7 +141,7 @@ func TestUpdateSecret_Unauthenticated(t *testing.T) {
 }
 
 func TestUpdateSecret_StorageError(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	userID := uuid.New()
 
@@ -165,7 +165,7 @@ func TestUpdateSecret_StorageError(t *testing.T) {
 }
 
 func TestDeleteSecret_Success(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	userID := uuid.New()
 	secretID := uuid.New()
@@ -184,7 +184,7 @@ func TestDeleteSecret_Success(t *testing.T) {
 }
 
 func TestDeleteSecret_Unauthenticated(t *testing.T) {
-	server, _ := newTestServer(t)
+	server, _, _ := newTestServer(t)
 
 	req := pb.DeleteSecretRequest_builder{
 		Id: proto.String("some-id"),
@@ -198,7 +198,7 @@ func TestDeleteSecret_Unauthenticated(t *testing.T) {
 }
 
 func TestDeleteSecret_StorageError(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	userID := uuid.New()
 
@@ -218,7 +218,7 @@ func TestDeleteSecret_StorageError(t *testing.T) {
 }
 
 func TestGetSecrets_Success(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	userID := uuid.New()
 	now := time.Now()
@@ -260,7 +260,7 @@ func TestGetSecrets_Success(t *testing.T) {
 }
 
 func TestGetSecrets_Empty(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	userID := uuid.New()
 
@@ -276,7 +276,7 @@ func TestGetSecrets_Empty(t *testing.T) {
 }
 
 func TestGetSecrets_Unauthenticated(t *testing.T) {
-	server, _ := newTestServer(t)
+	server, _, _ := newTestServer(t)
 
 	req := pb.GetSecretsRequest_builder{}.Build()
 
@@ -288,7 +288,7 @@ func TestGetSecrets_Unauthenticated(t *testing.T) {
 }
 
 func TestGetSecrets_StorageError(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	userID := uuid.New()
 
@@ -306,7 +306,7 @@ func TestGetSecrets_StorageError(t *testing.T) {
 }
 
 func TestGetSecret_Success(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	userID := uuid.New()
 	secretID := uuid.New()
@@ -337,7 +337,7 @@ func TestGetSecret_Success(t *testing.T) {
 }
 
 func TestGetSecret_Unauthenticated(t *testing.T) {
-	server, _ := newTestServer(t)
+	server, _, _ := newTestServer(t)
 
 	req := pb.GetSecretRequest_builder{
 		Id: proto.String("some-id"),
@@ -350,8 +350,260 @@ func TestGetSecret_Unauthenticated(t *testing.T) {
 	assert.Equal(t, codes.Unauthenticated, st.Code())
 }
 
+func TestCreateSecret_Binary_Success(t *testing.T) {
+	server, store, fileStore := newTestServer(t)
+
+	userID := uuid.New()
+	secretID := uuid.New()
+	now := time.Now()
+
+	store.EXPECT().
+		CreateSecret(mock.Anything, userID.String(), "binary secret", "binary", "", mock.Anything, "file.bin").
+		Return(&model.Secret{
+			ID:        secretID,
+			UserID:    userID,
+			Title:     "binary secret",
+			Type:      "binary",
+			CreatedAt: now,
+			UpdatedAt: now,
+		}, nil)
+
+	objectKey := fmt.Sprintf("%s/%s", userID.String(), secretID.String())
+	fileStore.EXPECT().
+		Upload(mock.Anything, objectKey, []byte("binary-data")).
+		Return(nil)
+
+	store.EXPECT().
+		UpdateSecret(mock.Anything, userID.String(), secretID.String(), "binary secret", objectKey, mock.Anything, "file.bin").
+		Return(&model.Secret{
+			ID:        secretID,
+			UserID:    userID,
+			Title:     "binary secret",
+			Type:      "binary",
+			CreatedAt: now,
+			UpdatedAt: now,
+		}, nil)
+
+	secretType := pb.SecretType_SECRET_TYPE_BINARY
+	req := pb.CreateSecretRequest_builder{
+		Title:         proto.String("binary secret"),
+		Type:          &secretType,
+		EncryptedData: []byte("binary-data"),
+		Metadata:      proto.String("{}"),
+		FilePath:      proto.String("file.bin"),
+	}.Build()
+
+	resp, err := server.CreateSecret(ctxWithUserID(userID), req)
+	require.NoError(t, err)
+	assert.Equal(t, secretID.String(), resp.GetId())
+}
+
+func TestCreateSecret_Binary_UploadError(t *testing.T) {
+	server, store, fileStore := newTestServer(t)
+
+	userID := uuid.New()
+	secretID := uuid.New()
+	now := time.Now()
+
+	store.EXPECT().
+		CreateSecret(mock.Anything, userID.String(), mock.Anything, "binary", "", mock.Anything, mock.Anything).
+		Return(&model.Secret{
+			ID:        secretID,
+			UserID:    userID,
+			CreatedAt: now,
+			UpdatedAt: now,
+		}, nil)
+
+	fileStore.EXPECT().
+		Upload(mock.Anything, mock.Anything, mock.Anything).
+		Return(fmt.Errorf("upload failed"))
+
+	secretType := pb.SecretType_SECRET_TYPE_BINARY
+	req := pb.CreateSecretRequest_builder{
+		Title:         proto.String("test"),
+		Type:          &secretType,
+		EncryptedData: []byte("data"),
+		Metadata:      proto.String("{}"),
+		FilePath:      proto.String("file.bin"),
+	}.Build()
+
+	_, err := server.CreateSecret(ctxWithUserID(userID), req)
+	require.Error(t, err)
+	st, _ := status.FromError(err)
+	assert.Equal(t, codes.Internal, st.Code())
+}
+
+func TestCreateSecret_Binary_ExceedsMaxSize(t *testing.T) {
+	server, _, _ := newTestServer(t)
+
+	userID := uuid.New()
+	largeData := make([]byte, maxBinarySecretSize+1)
+
+	secretType := pb.SecretType_SECRET_TYPE_BINARY
+	req := pb.CreateSecretRequest_builder{
+		Title:         proto.String("too large"),
+		Type:          &secretType,
+		EncryptedData: largeData,
+		Metadata:      proto.String("{}"),
+		FilePath:      proto.String("big.bin"),
+	}.Build()
+
+	_, err := server.CreateSecret(ctxWithUserID(userID), req)
+	require.Error(t, err)
+	st, _ := status.FromError(err)
+	assert.Equal(t, codes.InvalidArgument, st.Code())
+}
+
+func TestUpdateSecret_Binary_Success(t *testing.T) {
+	server, store, fileStore := newTestServer(t)
+
+	userID := uuid.New()
+	secretID := uuid.New()
+	now := time.Now()
+
+	objectKey := fmt.Sprintf("%s/%s", userID.String(), secretID.String())
+	fileStore.EXPECT().
+		Upload(mock.Anything, objectKey, []byte("new-binary")).
+		Return(nil)
+
+	store.EXPECT().
+		UpdateSecret(mock.Anything, userID.String(), secretID.String(), "updated binary", objectKey, mock.Anything, "file.bin").
+		Return(&model.Secret{
+			ID:        secretID,
+			UserID:    userID,
+			Title:     "updated binary",
+			Type:      "binary",
+			UpdatedAt: now,
+		}, nil)
+
+	secretType := pb.SecretType_SECRET_TYPE_BINARY
+	req := pb.UpdateSecretRequest_builder{
+		Id:            proto.String(secretID.String()),
+		Title:         proto.String("updated binary"),
+		Type:          &secretType,
+		EncryptedData: []byte("new-binary"),
+		Metadata:      proto.String("{}"),
+		FilePath:      proto.String("file.bin"),
+	}.Build()
+
+	resp, err := server.UpdateSecret(ctxWithUserID(userID), req)
+	require.NoError(t, err)
+	assert.NotEmpty(t, resp.GetUpdatedAt())
+}
+
+func TestGetSecret_Binary_Success(t *testing.T) {
+	server, store, fileStore := newTestServer(t)
+
+	userID := uuid.New()
+	secretID := uuid.New()
+	now := time.Now()
+	objectKey := fmt.Sprintf("%s/%s", userID.String(), secretID.String())
+
+	store.EXPECT().
+		GetSecretByID(mock.Anything, userID.String(), secretID.String()).
+		Return(&model.Secret{
+			ID:            secretID,
+			UserID:        userID,
+			Title:         "binary secret",
+			Type:          "binary",
+			EncryptedData: objectKey,
+			Metadata:      json.RawMessage(`{}`),
+			CreatedAt:     now,
+			UpdatedAt:     now,
+		}, nil)
+
+	fileStore.EXPECT().
+		Download(mock.Anything, objectKey).
+		Return([]byte("binary-content"), nil)
+
+	req := pb.GetSecretRequest_builder{
+		Id: proto.String(secretID.String()),
+	}.Build()
+
+	resp, err := server.GetSecret(ctxWithUserID(userID), req)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("binary-content"), resp.GetSecret().GetEncryptedData())
+}
+
+func TestGetSecret_Binary_DownloadError(t *testing.T) {
+	server, store, fileStore := newTestServer(t)
+
+	userID := uuid.New()
+	secretID := uuid.New()
+	now := time.Now()
+	objectKey := fmt.Sprintf("%s/%s", userID.String(), secretID.String())
+
+	store.EXPECT().
+		GetSecretByID(mock.Anything, userID.String(), secretID.String()).
+		Return(&model.Secret{
+			ID:            secretID,
+			UserID:        userID,
+			Title:         "binary secret",
+			Type:          "binary",
+			EncryptedData: objectKey,
+			Metadata:      json.RawMessage(`{}`),
+			CreatedAt:     now,
+			UpdatedAt:     now,
+		}, nil)
+
+	fileStore.EXPECT().
+		Download(mock.Anything, objectKey).
+		Return(nil, fmt.Errorf("storage unavailable"))
+
+	req := pb.GetSecretRequest_builder{
+		Id: proto.String(secretID.String()),
+	}.Build()
+
+	_, err := server.GetSecret(ctxWithUserID(userID), req)
+	require.Error(t, err)
+	st, _ := status.FromError(err)
+	assert.Equal(t, codes.Internal, st.Code())
+}
+
+func TestGetSecrets_OmitsBinaryData(t *testing.T) {
+	server, store, _ := newTestServer(t)
+
+	userID := uuid.New()
+	now := time.Now()
+
+	store.EXPECT().
+		GetSecretsByUserID(mock.Anything, userID.String()).
+		Return([]model.Secret{
+			{
+				ID:            uuid.New(),
+				UserID:        userID,
+				Title:         "Binary File",
+				Type:          "binary",
+				EncryptedData: "user-id/secret-id",
+				Metadata:      json.RawMessage(`{}`),
+				CreatedAt:     now,
+				UpdatedAt:     now,
+			},
+			{
+				ID:            uuid.New(),
+				UserID:        userID,
+				Title:         "Text Secret",
+				Type:          "text",
+				EncryptedData: "some-text",
+				Metadata:      json.RawMessage(`{}`),
+				CreatedAt:     now,
+				UpdatedAt:     now,
+			},
+		}, nil)
+
+	req := pb.GetSecretsRequest_builder{}.Build()
+
+	resp, err := server.GetSecrets(ctxWithUserID(userID), req)
+	require.NoError(t, err)
+	require.Len(t, resp.GetSecrets(), 2)
+	// Binary secret should have empty encrypted data
+	assert.Empty(t, resp.GetSecrets()[0].GetEncryptedData())
+	// Text secret should have data
+	assert.Equal(t, []byte("some-text"), resp.GetSecrets()[1].GetEncryptedData())
+}
+
 func TestGetSecret_NotFound(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	userID := uuid.New()
 

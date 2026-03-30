@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	pb "gkeeper/api/proto"
 	"gkeeper/internal/grpcclient"
@@ -83,8 +84,12 @@ func (m DownloadModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *DownloadModel) downloadFile(savePath string) tea.Cmd {
 	return func() tea.Msg {
-		err := m.client.DecryptBinarySecret(m.secret.GetEncryptedData(), savePath)
+		secret, err := m.client.GetSecret(context.Background(), m.secret.GetId())
 		if err != nil {
+			return FileDownloadedMsg{Error: fmt.Errorf("failed to fetch secret: %w", err)}
+		}
+
+		if err := m.client.DecryptBinarySecret(secret.GetEncryptedData(), savePath); err != nil {
 			return FileDownloadedMsg{Error: err}
 		}
 		return FileDownloadedMsg{Path: savePath}

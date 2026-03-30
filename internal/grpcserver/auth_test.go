@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	pb "gkeeper/api/proto"
 	"gkeeper/internal/jwt"
+	mockfilestorage "gkeeper/internal/mocks/filestorage"
 	mockstorage "gkeeper/internal/mocks/storage"
 	"gkeeper/internal/model"
 	"gkeeper/internal/storage"
@@ -21,15 +22,16 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func newTestServer(t *testing.T) (*GKeeperServer, *mockstorage.MockStorage) {
+func newTestServer(t *testing.T) (*GKeeperServer, *mockstorage.MockStorage, *mockfilestorage.MockFileStorage) {
 	store := mockstorage.NewMockStorage(t)
+	fileStore := mockfilestorage.NewMockFileStorage(t)
 	jwtManager := jwt.NewJWTManager("test-secret-key", 1*time.Hour)
-	server := NewGKeeperServer(zap.NewNop(), store, jwtManager)
-	return server, store
+	server := NewGKeeperServer(zap.NewNop(), store, fileStore, jwtManager)
+	return server, store, fileStore
 }
 
 func TestRegister_Success(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	userID := uuid.New()
 	store.EXPECT().
@@ -50,7 +52,7 @@ func TestRegister_Success(t *testing.T) {
 }
 
 func TestRegister_UserAlreadyExists(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	store.EXPECT().
 		CreateUser(mock.Anything, "test@example.com", mock.Anything, mock.Anything).
@@ -69,7 +71,7 @@ func TestRegister_UserAlreadyExists(t *testing.T) {
 }
 
 func TestLogin_Success(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	userID := uuid.New()
 	hashed, _ := hashPassword("password123")
@@ -102,7 +104,7 @@ func TestLogin_Success(t *testing.T) {
 }
 
 func TestLogin_UserNotFound(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	store.EXPECT().
 		GetUserByEmail(mock.Anything, "unknown@example.com").
@@ -121,7 +123,7 @@ func TestLogin_UserNotFound(t *testing.T) {
 }
 
 func TestLogin_WrongPassword(t *testing.T) {
-	server, store := newTestServer(t)
+	server, store, _ := newTestServer(t)
 
 	hashed, _ := hashPassword("correct-password")
 

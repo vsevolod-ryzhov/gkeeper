@@ -2,6 +2,7 @@ package grpcserver
 
 import (
 	"context"
+	"fmt"
 	pb "gkeeper/api/proto"
 	"gkeeper/internal/model"
 
@@ -12,21 +13,51 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+const maxBinarySecretSize = 50 * 1024 * 102
+
 func (gs *GKeeperServer) CreateSecret(ctx context.Context, req *pb.CreateSecretRequest) (*pb.CreateSecretResponse, error) {
 	userID, ok := ctx.Value(ctxKeyUserID).(uuid.UUID)
 	if !ok || userID == uuid.Nil {
 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
 	}
 
-	secret, err := gs.storage.CreateSecret(
-		ctx,
-		userID.String(),
-		req.GetTitle(),
-		model.ProtoToSecretType(req.GetType()),
-		string(req.GetEncryptedData()),
-		req.GetMetadata(),
-		req.GetFilePath(),
-	)
+	secretType := model.ProtoToSecretType(req.GetType())
+	encryptedData := string(req.GetEncryptedData())
+
+	if secretType == model.SecretTypeBinary {
+		if len(req.GetEncryptedData()) > maxBinarySecretSize {
+			return nil, status.Errorf(codes.InvalidArgument, "file size exceeds maximum of 50MB")
+		}
+
+		// Create DB record first with empty data to get the ID
+		secret, err := gs.storage.CreateSecret(ctx, userID.String(), req.GetTitle(), secretType, "", req.GetMetadata(), req.GetFilePath())
+		if err != nil {
+			gs.logger.Error("failed to create secret", zap.Error(err))
+			return nil, status.Errorf(codes.Internal, "failed to create secret")
+		}
+
+		objectKey := fmt.Sprintf("%s/%s", userID.String(), secret.ID.String())
+		if err := gs.fileStorage.Upload(ctx, objectKey, req.GetEncryptedData()); err != nil {
+			gs.logger.Error("failed to upload binary to storage", zap.Error(err))
+			return nil, status.Errorf(codes.Internal, "failed to upload file")
+		}
+
+		// Update the record with the object key
+		secret, err = gs.storage.UpdateSecret(ctx, userID.String(), secret.ID.String(), req.GetTitle(), objectKey, req.GetMetadata(), req.GetFilePath())
+		if err != nil {
+			gs.logger.Error("failed to update secret with object key", zap.Error(err))
+			return nil, status.Errorf(codes.Internal, "failed to create secret")
+		}
+
+		gs.logger.Info("binary secret created", zap.String("id", secret.ID.String()), zap.String("user_id", userID.String()))
+
+		return pb.CreateSecretResponse_builder{
+			Id:        proto.String(secret.ID.String()),
+			CreatedAt: proto.String(secret.CreatedAt.Format("2006-01-02T15:04:05Z07:00")),
+		}.Build(), nil
+	}
+
+	secret, err := gs.storage.CreateSecret(ctx, userID.String(), req.GetTitle(), secretType, encryptedData, req.GetMetadata(), req.GetFilePath())
 	if err != nil {
 		gs.logger.Error("failed to create secret", zap.Error(err))
 		return nil, status.Errorf(codes.Internal, "failed to create secret")
@@ -46,7 +77,23 @@ func (gs *GKeeperServer) UpdateSecret(ctx context.Context, req *pb.UpdateSecretR
 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
 	}
 
-	secret, err := gs.storage.UpdateSecret(ctx, userID.String(), req.GetId(), req.GetTitle(), string(req.GetEncryptedData()), req.GetMetadata(), req.GetFilePath())
+	secretType := model.ProtoToSecretType(req.GetType())
+	encryptedData := string(req.GetEncryptedData())
+
+	if secretType == model.SecretTypeBinary && len(req.GetEncryptedData()) > 0 {
+		if len(req.GetEncryptedData()) > maxBinarySecretSize {
+			return nil, status.Errorf(codes.InvalidArgument, "file size exceeds maximum of 50MB")
+		}
+
+		objectKey := fmt.Sprintf("%s/%s", userID.String(), req.GetId())
+		if err := gs.fileStorage.Upload(ctx, objectKey, req.GetEncryptedData()); err != nil {
+			gs.logger.Error("failed to upload binary to storage", zap.Error(err))
+			return nil, status.Errorf(codes.Internal, "failed to upload file")
+		}
+		encryptedData = objectKey
+	}
+
+	secret, err := gs.storage.UpdateSecret(ctx, userID.String(), req.GetId(), req.GetTitle(), encryptedData, req.GetMetadata(), req.GetFilePath())
 	if err != nil {
 		gs.logger.Error("failed to update secret", zap.Error(err))
 		return nil, status.Errorf(codes.Internal, "failed to update secret")
@@ -100,13 +147,19 @@ func (gs *GKeeperServer) GetSecrets(ctx context.Context, req *pb.GetSecretsReque
 			filePath = s.FilePath
 		}
 
+		// Don't include binary data in list responses — client fetches via GetSecret
+		var encryptedData []byte
+		if s.Type != model.SecretTypeBinary {
+			encryptedData = []byte(s.EncryptedData)
+		}
+
 		secretType := model.SecretTypeToProto(s.Type)
 		pbSecrets = append(pbSecrets, pb.Secret_builder{
 			Id:            proto.String(s.ID.String()),
 			UserId:        proto.String(s.UserID.String()),
 			Title:         proto.String(s.Title),
 			Type:          &secretType,
-			EncryptedData: []byte(s.EncryptedData),
+			EncryptedData: encryptedData,
 			Metadata:      proto.String(string(s.Metadata)),
 			FilePath:      filePath,
 			CreatedAt:     proto.String(s.CreatedAt.Format("2006-01-02T15:04:05Z07:00")),
@@ -132,6 +185,18 @@ func (gs *GKeeperServer) GetSecret(ctx context.Context, req *pb.GetSecretRequest
 		return nil, status.Errorf(codes.NotFound, "secret not found")
 	}
 
+	encryptedData := []byte(secret.EncryptedData)
+
+	// For binary secrets, fetch the actual data from object storage
+	if secret.Type == model.SecretTypeBinary && secret.EncryptedData != "" {
+		data, err := gs.fileStorage.Download(ctx, secret.EncryptedData)
+		if err != nil {
+			gs.logger.Error("failed to download binary from storage", zap.Error(err))
+			return nil, status.Errorf(codes.Internal, "failed to retrieve file")
+		}
+		encryptedData = data
+	}
+
 	var deletedAt *string
 	if secret.DeletedAt != nil {
 		v := secret.DeletedAt.Format("2006-01-02T15:04:05Z07:00")
@@ -149,7 +214,7 @@ func (gs *GKeeperServer) GetSecret(ctx context.Context, req *pb.GetSecretRequest
 			UserId:        proto.String(secret.UserID.String()),
 			Title:         proto.String(secret.Title),
 			Type:          &secretType,
-			EncryptedData: []byte(secret.EncryptedData),
+			EncryptedData: encryptedData,
 			Metadata:      proto.String(string(secret.Metadata)),
 			FilePath:      filePath,
 			CreatedAt:     proto.String(secret.CreatedAt.Format("2006-01-02T15:04:05Z07:00")),
