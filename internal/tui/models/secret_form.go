@@ -15,14 +15,17 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// FieldType represents the kind of input widget for a form field.
 type FieldType int
 
+// FieldType constants for form input widgets.
 const (
 	FieldTypeText FieldType = iota
 	FieldTypePassword
 	FieldTypeTextArea
 )
 
+// Field represents a single input field in the secret form.
 type Field struct {
 	Label      string
 	Type       FieldType
@@ -32,6 +35,7 @@ type Field struct {
 	Validation func(string) error
 }
 
+// SecretFormModel is the Bubble Tea model for creating or editing a secret.
 type SecretFormModel struct {
 	SecretType   string
 	TitleInput   textinput.Model
@@ -53,6 +57,7 @@ type SecretFormModel struct {
 	client       *grpcclient.Client
 }
 
+// NewSecretFormModel creates a new SecretFormModel with fields configured for the given secret type.
 func NewSecretFormModel(secretType string, editing bool, existingData *model.Secret, authToken string, client *grpcclient.Client) SecretFormModel {
 	m := SecretFormModel{
 		SecretType:   secretType,
@@ -189,6 +194,7 @@ func (m *SecretFormModel) SetFieldValues(data map[string]string) {
 	}
 }
 
+// Init focuses the title input field.
 func (m SecretFormModel) Init() tea.Cmd {
 	return m.TitleInput.Focus()
 }
@@ -203,6 +209,7 @@ func (m *SecretFormModel) metaKeys() []string {
 	return keys
 }
 
+// Update handles keyboard input for form navigation, metadata management, and submission.
 func (m SecretFormModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	if m.AddingMeta {
 		return m.updateAddingMeta(message)
@@ -516,11 +523,13 @@ func (m *SecretFormModel) collectData() map[string]interface{} {
 	return data
 }
 
+// SaveSecretMsg is the message sent after a secret save attempt.
 type SaveSecretMsg struct {
 	Success bool
 	Error   error
 }
 
+// View renders the secret form, metadata entry, or metadata management screen.
 func (m SecretFormModel) View() string {
 	if m.AddingMeta {
 		return m.viewAddMetadata()

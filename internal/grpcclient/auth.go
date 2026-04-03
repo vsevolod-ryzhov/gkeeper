@@ -14,6 +14,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// Login authenticates a user with the given email and password, stores the returned
+// token, user ID, email, and initializes the encryption handler from the user's password and salt.
 func (c *Client) Login(ctx context.Context, email string, password string) error {
 	var header metadata.MD
 	response, reqErr := c.client.Login(ctx, pb.LoginRequest_builder{
@@ -61,6 +63,7 @@ func extractTokenFromHeader(header metadata.MD) (string, error) {
 	return token, nil
 }
 
+// Register creates a new user account with the given email and password on the server.
 func (c *Client) Register(ctx context.Context, email string, password string) error {
 	_, reqErr := c.client.Register(ctx, pb.RegisterRequest_builder{
 		Email:    proto.String(email),

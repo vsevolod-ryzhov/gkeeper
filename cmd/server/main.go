@@ -15,6 +15,7 @@ import (
 
 var logger *zap.Logger
 
+// Run initializes the server dependencies and starts the gRPC server, blocking until the context is cancelled.
 func Run(ctx context.Context) error {
 	config.ParseFlags()
 

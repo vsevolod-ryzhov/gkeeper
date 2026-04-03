@@ -15,6 +15,8 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+// Storage defines the interface for persistent data operations.
+//
 //go:generate mockery
 type Storage interface {
 	Ping(ctx context.Context) error
@@ -27,10 +29,12 @@ type Storage interface {
 	GetSecretByID(ctx context.Context, userID string, secretID string) (*model.Secret, error)
 }
 
+// PostgresStorage implements the Storage interface using PostgreSQL.
 type PostgresStorage struct {
 	db *sql.DB
 }
 
+// NewPostgresStorage connects to the database, applies migrations, and returns a new PostgresStorage.
 func NewPostgresStorage(connectionString string) (*PostgresStorage, error) {
 	db, err := sql.Open("pgx", connectionString)
 	if err != nil {
@@ -78,6 +82,7 @@ func applyMigrations(db *sql.DB) error {
 	return nil
 }
 
+// Ping verifies that the database connection is alive.
 func (s *PostgresStorage) Ping(ctx context.Context) error {
 	return s.db.PingContext(ctx)
 }

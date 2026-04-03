@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// CreateModel is the Bubble Tea model for the secret type selection and creation form.
 type CreateModel struct {
 	choices      []string
 	cursor       int
@@ -21,6 +22,7 @@ type CreateModel struct {
 	client       *grpcclient.Client
 }
 
+// NewCreateModel creates a new CreateModel with available secret type choices.
 func NewCreateModel(client *grpcclient.Client) CreateModel {
 	return CreateModel{
 		choices:   []string{model.SecretTypeCredentials, model.SecretTypeText, model.SecretTypeCard, model.SecretTypeBinary},
@@ -33,10 +35,12 @@ func NewCreateModel(client *grpcclient.Client) CreateModel {
 	}
 }
 
+// Init returns the initial command for the create model.
 func (m CreateModel) Init() tea.Cmd {
 	return nil
 }
 
+// Update handles keyboard input for secret type selection and delegates to the form model.
 func (m CreateModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	if m.ShowForm {
 		updatedForm, cmd := m.FormModel.Update(message)
@@ -96,6 +100,7 @@ func (m CreateModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View renders the secret type selection or the active form.
 func (m CreateModel) View() string {
 	if m.ShowForm {
 		return m.FormModel.View()

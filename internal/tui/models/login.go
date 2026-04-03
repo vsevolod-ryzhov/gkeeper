@@ -10,6 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// LoginModel is the Bubble Tea model for the login form.
 type LoginModel struct {
 	emailInput textinput.Model
 	passInput  textinput.Model
@@ -22,6 +23,7 @@ type LoginModel struct {
 	client     *grpcclient.Client
 }
 
+// NewLoginModel creates a new LoginModel with email and password inputs.
 func NewLoginModel(client *grpcclient.Client) LoginModel {
 	email := textinput.New()
 	email.Placeholder = "Email"
@@ -46,10 +48,12 @@ func NewLoginModel(client *grpcclient.Client) LoginModel {
 	}
 }
 
+// Init returns the initial command for the login model.
 func (m LoginModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
+// Update handles keyboard input for login form navigation and submission.
 func (m LoginModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
@@ -135,6 +139,7 @@ func (m LoginModel) validateForm() bool {
 	return strings.Contains(email, "@") && len(pass) >= 3
 }
 
+// View renders the login form.
 func (m LoginModel) View() string {
 	var b strings.Builder
 

@@ -16,18 +16,21 @@ import (
 	pb "gkeeper/api/proto"
 )
 
+// ServerConfig holds the network and TLS configuration for the gRPC server.
 type ServerConfig struct {
 	AppPort  string
 	CertFile string
 	KeyFile  string
 }
 
+// Server wraps a gRPC server with configuration and logging.
 type Server struct {
 	grpcServer *grpc.Server
 	config     *ServerConfig
 	logger     *zap.Logger
 }
 
+// NewServer creates a new Server with the given configuration and logger.
 func NewServer(config *ServerConfig, logger *zap.Logger) *Server {
 	return &Server{
 		config: config,
@@ -37,6 +40,7 @@ func NewServer(config *ServerConfig, logger *zap.Logger) *Server {
 
 const maxMessageSize = 51 * 1024 * 1024 // 51MB to accommodate 50MB payloads + overhead
 
+// Start initializes TLS, registers services, and begins serving gRPC requests.
 func (s *Server) Start(storage storage.Storage, fileStorage filestorage.FileStorage) error {
 	listen, err := net.Listen("tcp", s.config.AppPort)
 	if err != nil {
@@ -73,6 +77,7 @@ func (s *Server) Start(storage storage.Storage, fileStorage filestorage.FileStor
 	return nil
 }
 
+// Stop gracefully shuts down the gRPC server.
 func (s *Server) Stop() {
 	if s.grpcServer != nil {
 		s.grpcServer.GracefulStop()

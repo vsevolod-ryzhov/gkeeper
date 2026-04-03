@@ -15,6 +15,7 @@ import (
 
 const maxBinarySecretSize = 50 * 1024 * 102
 
+// CreateSecret creates a new secret for the authenticated user, uploading binary data to object storage when applicable.
 func (gs *GKeeperServer) CreateSecret(ctx context.Context, req *pb.CreateSecretRequest) (*pb.CreateSecretResponse, error) {
 	userID, ok := ctx.Value(ctxKeyUserID).(uuid.UUID)
 	if !ok || userID == uuid.Nil {
@@ -71,6 +72,7 @@ func (gs *GKeeperServer) CreateSecret(ctx context.Context, req *pb.CreateSecretR
 	}.Build(), nil
 }
 
+// UpdateSecret updates an existing secret for the authenticated user, re-uploading binary data to object storage if provided.
 func (gs *GKeeperServer) UpdateSecret(ctx context.Context, req *pb.UpdateSecretRequest) (*pb.UpdateSecretResponse, error) {
 	userID, ok := ctx.Value(ctxKeyUserID).(uuid.UUID)
 	if !ok || userID == uuid.Nil {
@@ -104,6 +106,7 @@ func (gs *GKeeperServer) UpdateSecret(ctx context.Context, req *pb.UpdateSecretR
 	}.Build(), nil
 }
 
+// DeleteSecret soft-deletes a secret by ID for the authenticated user.
 func (gs *GKeeperServer) DeleteSecret(ctx context.Context, req *pb.DeleteSecretRequest) (*pb.DeleteSecretResponse, error) {
 	userID, ok := ctx.Value(ctxKeyUserID).(uuid.UUID)
 	if !ok || userID == uuid.Nil {
@@ -123,6 +126,7 @@ func (gs *GKeeperServer) DeleteSecret(ctx context.Context, req *pb.DeleteSecretR
 	}.Build(), nil
 }
 
+// GetSecrets returns all secrets for the authenticated user, excluding binary data from list responses.
 func (gs *GKeeperServer) GetSecrets(ctx context.Context, req *pb.GetSecretsRequest) (*pb.GetSecretsResponse, error) {
 	userID, ok := ctx.Value(ctxKeyUserID).(uuid.UUID)
 	if !ok || userID == uuid.Nil {
@@ -173,6 +177,7 @@ func (gs *GKeeperServer) GetSecrets(ctx context.Context, req *pb.GetSecretsReque
 	}.Build(), nil
 }
 
+// GetSecret returns a single secret by ID for the authenticated user, fetching binary data from object storage when applicable.
 func (gs *GKeeperServer) GetSecret(ctx context.Context, req *pb.GetSecretRequest) (*pb.GetSecretResponse, error) {
 	userID, ok := ctx.Value(ctxKeyUserID).(uuid.UUID)
 	if !ok || userID == uuid.Nil {

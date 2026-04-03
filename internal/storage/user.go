@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
+// CreateUser inserts a new user record and returns it. Returns ErrUserAlreadyExists on duplicate email.
 func (s *PostgresStorage) CreateUser(ctx context.Context, email string, passwordHash string, salt string) (*model.UserRecord, error) {
 	var user model.UserRecord
 
@@ -35,6 +36,7 @@ func (s *PostgresStorage) CreateUser(ctx context.Context, email string, password
 	return &user, nil
 }
 
+// GetUserByEmail retrieves a user by email address. Returns ErrUserNotFound if not found.
 func (s *PostgresStorage) GetUserByEmail(ctx context.Context, email string) (*model.UserRecord, error) {
 	var user model.UserRecord
 

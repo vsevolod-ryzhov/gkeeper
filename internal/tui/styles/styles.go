@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Adaptive color definitions for light and dark terminal themes.
 var (
 	Subtle    = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
 	Highlight = lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7B56F9"}
@@ -11,6 +12,7 @@ var (
 	Warning   = lipgloss.AdaptiveColor{Light: "#FF0000", Dark: "#FF4444"}
 )
 
+// Lipgloss style definitions for TUI components.
 var (
 	TitleStyle = lipgloss.NewStyle().
 			Bold(true).
@@ -96,10 +98,12 @@ var (
 			Bold(true)
 )
 
+// RenderTitle renders text using the title style.
 func RenderTitle(text string) string {
 	return TitleStyle.Render(text)
 }
 
+// RenderMenuItem renders a menu item, highlighting it if selected.
 func RenderMenuItem(text string, isSelected bool) string {
 	if isSelected {
 		return SelectedMenuItemStyle.Render("→ " + text)
@@ -107,6 +111,7 @@ func RenderMenuItem(text string, isSelected bool) string {
 	return MenuItemStyle.Render("  " + text)
 }
 
+// RenderInputField renders a text input field with active/inactive styling.
 func RenderInputField(input string, placeholder string, isActive bool) string {
 	style := InactiveInputStyle
 	if isActive {
@@ -119,6 +124,7 @@ func RenderInputField(input string, placeholder string, isActive bool) string {
 	return style.Render(input)
 }
 
+// RenderButton renders a button with active/inactive styling.
 func RenderButton(text string, isActive bool) string {
 	if isActive {
 		return ActiveButtonStyle.Render(text)

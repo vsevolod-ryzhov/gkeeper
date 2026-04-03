@@ -16,6 +16,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Register creates a new user account with the provided email and password.
 func (gs *GKeeperServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	var response pb.RegisterResponse
 
@@ -42,6 +43,7 @@ func (gs *GKeeperServer) Register(ctx context.Context, req *pb.RegisterRequest) 
 	return &response, nil
 }
 
+// Login authenticates a user and returns a JWT token in the response metadata.
 func (gs *GKeeperServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	var response pb.LoginResponse
 

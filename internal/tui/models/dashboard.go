@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// DashboardModel is the Bubble Tea model for the authenticated user's dashboard.
 type DashboardModel struct {
 	choices  []string
 	cursor   int
@@ -16,6 +17,7 @@ type DashboardModel struct {
 	Email    string
 }
 
+// NewDashboardModel creates a new DashboardModel with default choices.
 func NewDashboardModel() DashboardModel {
 	return DashboardModel{
 		choices:  []string{"list", "new", "logout"},
@@ -26,10 +28,12 @@ func NewDashboardModel() DashboardModel {
 	}
 }
 
+// Init returns the initial command for the dashboard model.
 func (m DashboardModel) Init() tea.Cmd {
 	return nil
 }
 
+// Update handles keyboard input for dashboard navigation and selection.
 func (m DashboardModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := message.(type) {
 	case tea.KeyMsg:
@@ -52,6 +56,7 @@ func (m DashboardModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View renders the dashboard screen.
 func (m DashboardModel) View() string {
 	var s strings.Builder
 	s.WriteString(styles.RenderTitle(fmt.Sprintf("Welcome back %s!", m.Email)))

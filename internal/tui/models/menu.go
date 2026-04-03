@@ -8,12 +8,14 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// MenuModel is the Bubble Tea model for the main menu screen.
 type MenuModel struct {
 	choices  []string
 	cursor   int
 	Selected string
 }
 
+// NewMenuModel creates a new MenuModel with default menu choices.
 func NewMenuModel() MenuModel {
 	return MenuModel{
 		choices:  []string{"login", "register", "exit"},
@@ -22,10 +24,12 @@ func NewMenuModel() MenuModel {
 	}
 }
 
+// Init returns the initial command for the menu model.
 func (m MenuModel) Init() tea.Cmd {
 	return nil
 }
 
+// Update handles keyboard input for menu navigation and selection.
 func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -48,6 +52,7 @@ func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View renders the menu screen.
 func (m MenuModel) View() string {
 	var s strings.Builder
 	s.WriteString(styles.RenderTitle("Welcome to GKeeper!"))

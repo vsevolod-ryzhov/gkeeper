@@ -20,16 +20,19 @@ const (
 	ctxKeyEmail  contextKey = "email"
 )
 
+// AuthInterceptor validates JWT tokens on protected gRPC methods.
 type AuthInterceptor struct {
 	jwtManager *jwt.JWTManager
 }
 
+// NewAuthInterceptor creates a new AuthInterceptor with the given JWT manager.
 func NewAuthInterceptor(jwtManager *jwt.JWTManager) *AuthInterceptor {
 	return &AuthInterceptor{
 		jwtManager: jwtManager,
 	}
 }
 
+// Unary returns a gRPC unary server interceptor that enforces authentication on protected methods.
 func (interceptor *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,

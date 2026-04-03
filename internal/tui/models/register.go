@@ -10,6 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// RegisterModel is the Bubble Tea model for the registration form.
 type RegisterModel struct {
 	emailInput textinput.Model
 	passInput  textinput.Model
@@ -20,6 +21,7 @@ type RegisterModel struct {
 	client     *grpcclient.Client
 }
 
+// NewRegisterModel creates a new RegisterModel with email and password inputs.
 func NewRegisterModel(client *grpcclient.Client) RegisterModel {
 	email := textinput.New()
 	email.Placeholder = "Email"
@@ -44,10 +46,12 @@ func NewRegisterModel(client *grpcclient.Client) RegisterModel {
 	}
 }
 
+// Init returns the initial command for the register model.
 func (m RegisterModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
+// Update handles keyboard input for registration form navigation and submission.
 func (m RegisterModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
@@ -131,6 +135,7 @@ func (m RegisterModel) validateForm() bool {
 	return strings.Contains(email, "@") && len(pass) >= 3
 }
 
+// View renders the registration form.
 func (m RegisterModel) View() string {
 	var b strings.Builder
 

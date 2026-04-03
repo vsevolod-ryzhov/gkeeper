@@ -11,8 +11,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// SessionState represents the current view in the TUI application.
 type SessionState int
 
+// SessionState constants representing the available TUI views.
 const (
 	MenuView SessionState = iota
 	LoginView
@@ -23,6 +25,7 @@ const (
 	DownloadView
 )
 
+// MainModel is the root Bubble Tea model that manages navigation between TUI views.
 type MainModel struct {
 	state     SessionState
 	menu      models.MenuModel
@@ -38,6 +41,7 @@ type MainModel struct {
 	userEmail string
 }
 
+// NewMainModel creates a new MainModel initialized to the menu view.
 func NewMainModel(client *grpcclient.Client) MainModel {
 	return MainModel{
 		state:     MenuView,
@@ -51,6 +55,7 @@ func NewMainModel(client *grpcclient.Client) MainModel {
 	}
 }
 
+// Init initializes the current view's commands.
 func (m MainModel) Init() tea.Cmd {
 	switch m.state {
 	case MenuView:
@@ -72,6 +77,7 @@ func (m MainModel) Init() tea.Cmd {
 	return nil
 }
 
+// Update handles messages and delegates to the active view's update logic.
 func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
@@ -227,6 +233,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
+// View renders the current active view.
 func (m MainModel) View() string {
 	switch m.state {
 	case MenuView:
@@ -248,6 +255,7 @@ func (m MainModel) View() string {
 	}
 }
 
+// NewEditFormFromProto creates a SecretFormModel pre-populated with data from a protobuf Secret for editing.
 func NewEditFormFromProto(secret *pb.Secret, authToken string, client *grpcclient.Client) models.SecretFormModel {
 	form := models.NewSecretFormModel(model.ProtoToSecretType(secret.GetType()), true, nil, authToken, client)
 	form.SecretID = secret.GetId()

@@ -12,11 +12,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// FileDownloadedMsg is the message sent after a binary secret download attempt.
 type FileDownloadedMsg struct {
 	Path  string
 	Error error
 }
 
+// DownloadModel is the Bubble Tea model for downloading binary secrets to disk.
 type DownloadModel struct {
 	secret     *pb.Secret
 	pathInput  textinput.Model
@@ -26,6 +28,7 @@ type DownloadModel struct {
 	client     *grpcclient.Client
 }
 
+// NewDownloadModel creates a new DownloadModel for the given binary secret.
 func NewDownloadModel(secret *pb.Secret, client *grpcclient.Client) DownloadModel {
 	pathInput := textinput.New()
 	pathInput.Placeholder = "Enter path to save file"
@@ -44,10 +47,12 @@ func NewDownloadModel(secret *pb.Secret, client *grpcclient.Client) DownloadMode
 	}
 }
 
+// Init focuses the path input field.
 func (m DownloadModel) Init() tea.Cmd {
 	return m.pathInput.Focus()
 }
 
+// Update handles keyboard input for the download form.
 func (m DownloadModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := message.(type) {
 	case FileDownloadedMsg:
@@ -96,6 +101,7 @@ func (m *DownloadModel) downloadFile(savePath string) tea.Cmd {
 	}
 }
 
+// View renders the download form screen.
 func (m DownloadModel) View() string {
 	var s strings.Builder
 

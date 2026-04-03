@@ -10,6 +10,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
+// CreateSecret inserts a new secret record for the given user and returns it.
 func (s *PostgresStorage) CreateSecret(ctx context.Context, userID string, title string, secretType string, encryptedData string, metadata string, filePath string) (*model.Secret, error) {
 	var secret model.Secret
 
@@ -30,6 +31,7 @@ func (s *PostgresStorage) CreateSecret(ctx context.Context, userID string, title
 	return &secret, nil
 }
 
+// UpdateSecret updates an existing secret's data and returns the updated record.
 func (s *PostgresStorage) UpdateSecret(ctx context.Context, userID string, secretID string, title string, encryptedData string, metadata string, filePath string) (*model.Secret, error) {
 	var secret model.Secret
 
@@ -53,6 +55,7 @@ func (s *PostgresStorage) UpdateSecret(ctx context.Context, userID string, secre
 	return &secret, nil
 }
 
+// DeleteSecret performs a soft delete on a secret by setting its deleted_at timestamp.
 func (s *PostgresStorage) DeleteSecret(ctx context.Context, userID string, secretID string) error {
 	result, err := sq.Update("secrets").
 		Set("deleted_at", sq.Expr("NOW()")).
@@ -77,6 +80,7 @@ func (s *PostgresStorage) DeleteSecret(ctx context.Context, userID string, secre
 	return nil
 }
 
+// GetSecretsByUserID returns all non-deleted secrets belonging to the given user.
 func (s *PostgresStorage) GetSecretsByUserID(ctx context.Context, userID string) ([]model.Secret, error) {
 	rows, err := sq.Select("id", "user_id", "title", "type", "encrypted_data", "metadata", "file_path", "created_at", "updated_at").
 		From("secrets").
@@ -103,6 +107,7 @@ func (s *PostgresStorage) GetSecretsByUserID(ctx context.Context, userID string)
 	return secrets, rows.Err()
 }
 
+// GetSecretByID returns a single non-deleted secret by ID for the given user.
 func (s *PostgresStorage) GetSecretByID(ctx context.Context, userID string, secretID string) (*model.Secret, error) {
 	var secret model.Secret
 

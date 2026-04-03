@@ -12,15 +12,18 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// SecretsLoadedMsg is the message sent when secrets have been fetched from the server.
 type SecretsLoadedMsg struct {
 	Secrets []*pb.Secret
 	Error   error
 }
 
+// SecretDeletedMsg is the message sent after a secret deletion attempt.
 type SecretDeletedMsg struct {
 	Error error
 }
 
+// ListModel is the Bubble Tea model for displaying and managing the secrets list.
 type ListModel struct {
 	secrets   []*pb.Secret
 	cursor    int
@@ -32,6 +35,7 @@ type ListModel struct {
 	client    *grpcclient.Client
 }
 
+// NewListModel creates a new ListModel in a loading state.
 func NewListModel(client *grpcclient.Client) ListModel {
 	return ListModel{
 		client:  client,
@@ -39,6 +43,7 @@ func NewListModel(client *grpcclient.Client) ListModel {
 	}
 }
 
+// Init starts loading the secrets list from the server.
 func (m ListModel) Init() tea.Cmd {
 	return m.loadSecrets()
 }
@@ -54,6 +59,7 @@ func (m ListModel) loadSecrets() tea.Cmd {
 	}
 }
 
+// Update handles keyboard input for list navigation, selection, and deletion.
 func (m ListModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := message.(type) {
 	case SecretsLoadedMsg:
@@ -108,6 +114,7 @@ func (m ListModel) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View renders the secrets list screen.
 func (m ListModel) View() string {
 	var s strings.Builder
 

@@ -9,10 +9,14 @@ import (
 )
 
 const (
+	// SecretTypeCredentials represents a login/password credential secret.
 	SecretTypeCredentials = "credentials"
-	SecretTypeText        = "text"
-	SecretTypeCard        = "card"
-	SecretTypeBinary      = "binary"
+	// SecretTypeText represents an arbitrary text secret.
+	SecretTypeText = "text"
+	// SecretTypeCard represents a bank card secret.
+	SecretTypeCard = "card"
+	// SecretTypeBinary represents an arbitrary binary data secret.
+	SecretTypeBinary = "binary"
 )
 
 // SecretTypeToProto converts a string secret type to the protobuf enum value.
@@ -47,6 +51,7 @@ func ProtoToSecretType(t pb.SecretType) string {
 	}
 }
 
+// EncryptedPayload holds the decrypted fields of a secret, varying by secret type.
 type EncryptedPayload struct {
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
@@ -62,12 +67,14 @@ type EncryptedPayload struct {
 	Notes string `json:"notes,omitempty"`
 }
 
+// Metadata holds arbitrary descriptive information associated with a secret.
 type Metadata struct {
 	Name         string            `json:"name"`
 	Tags         []string          `json:"tags,omitempty"`
 	CustomFields map[string]string `json:"custom_fields,omitempty"`
 }
 
+// Secret represents an encrypted secret record stored in the database.
 type Secret struct {
 	ID            uuid.UUID       `db:"id"`
 	UserID        uuid.UUID       `db:"user_id"`

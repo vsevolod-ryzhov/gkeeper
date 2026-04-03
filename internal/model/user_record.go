@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// UserRecord represents a user account stored in the database.
 type UserRecord struct {
 	ID           uuid.UUID `db:"id"`
 	Email        string    `db:"email"`

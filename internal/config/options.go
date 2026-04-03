@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+// Options holds the global server configuration populated from CLI flags and environment variables.
 var Options struct {
 	AppPort        string `default:"localhost:8080"`
 	CertFile       string
@@ -18,6 +19,7 @@ var Options struct {
 	MinioUseSSL    bool
 }
 
+// ParseFlags parses CLI flags and overrides values with environment variables when set.
 func ParseFlags() {
 	flag.StringVar(&Options.AppPort, "a", "localhost:8080", "The address to bind the app to")
 	flag.StringVar(&Options.CertFile, "c", "", "The TLS certificate file")

@@ -18,10 +18,13 @@ const (
 	iterations = 100000
 )
 
+// Crypto provides AES-GCM encryption and decryption using a derived master key.
 type Crypto struct {
 	masterKey []byte
 }
 
+// NewCryptoFromPassword derives an encryption key from the given password and salt using PBKDF2.
+// If salt is nil, a random salt is generated.
 func NewCryptoFromPassword(password string, salt []byte) (*Crypto, error) {
 	if salt == nil {
 		salt = make([]byte, saltSize)
@@ -37,6 +40,7 @@ func NewCryptoFromPassword(password string, salt []byte) (*Crypto, error) {
 	}, nil
 }
 
+// Encrypt encrypts plaintext using AES-GCM and returns the result as a base64-encoded string.
 func (c *Crypto) Encrypt(plaintext []byte) (string, error) {
 	block, err := aes.NewCipher(c.masterKey)
 	if err != nil {
@@ -57,6 +61,7 @@ func (c *Crypto) Encrypt(plaintext []byte) (string, error) {
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
+// Decrypt decodes a base64-encoded ciphertext and decrypts it using AES-GCM.
 func (c *Crypto) Decrypt(encryptedData string) ([]byte, error) {
 	ciphertext, err := base64.StdEncoding.DecodeString(encryptedData)
 	if err != nil {

@@ -75,6 +75,7 @@ func (c *Client) DecryptBinarySecret(encryptedData []byte, savePath string) erro
 	return nil
 }
 
+// UpdateSecret updates an existing secret on the server with the given title, type, and data.
 func (c *Client) UpdateSecret(ctx context.Context, id string, title string, secretType string, data map[string]interface{}) error {
 	encryptedData, binaryFileName, err := c.encryptSecretData(secretType, data)
 	if err != nil {
@@ -114,6 +115,7 @@ func (c *Client) UpdateSecret(ctx context.Context, id string, title string, secr
 	return nil
 }
 
+// CreateSecret creates a new secret on the server with the given title, type, and data.
 func (c *Client) CreateSecret(ctx context.Context, title string, secretType string, data map[string]interface{}) error {
 	encryptedData, binaryFileName, err := c.encryptSecretData(secretType, data)
 	if err != nil {
@@ -146,6 +148,7 @@ func (c *Client) CreateSecret(ctx context.Context, title string, secretType stri
 	return nil
 }
 
+// DeleteSecret deletes the secret with the given ID from the server.
 func (c *Client) DeleteSecret(ctx context.Context, id string) error {
 	ctxWithToken := c.createContextWithToken(ctx)
 
@@ -161,6 +164,7 @@ func (c *Client) DeleteSecret(ctx context.Context, id string) error {
 	return nil
 }
 
+// GetSecret retrieves a single secret by ID from the server.
 func (c *Client) GetSecret(ctx context.Context, id string) (*pb.Secret, error) {
 	ctxWithToken := c.createContextWithToken(ctx)
 
@@ -175,6 +179,7 @@ func (c *Client) GetSecret(ctx context.Context, id string) (*pb.Secret, error) {
 	return response.GetSecret(), nil
 }
 
+// GetSecrets retrieves all secrets belonging to the authenticated user from the server.
 func (c *Client) GetSecrets(ctx context.Context) ([]*pb.Secret, error) {
 	ctxWithToken := c.createContextWithToken(ctx)
 
